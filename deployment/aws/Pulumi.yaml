@@ -4,3 +4,5 @@ runtime:
     name: python
     options:
         virtualenv: venv
+config:
+  antares-idl-aws:components.efs: true

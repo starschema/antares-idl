@@ -1,0 +1,3 @@
+config:
+  antares-idl-aws:deploy-efs: "true"
+  aws:region: eu-central-1

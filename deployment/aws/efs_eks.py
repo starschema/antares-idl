@@ -1,0 +1,131 @@
+import pulumi
+import json
+import pulumi_aws as aws
+
+
+def deploy_efs(resources):
+
+    # First of all get the necessary information about the EKS cluster
+    eks_cluster = aws.eks.Cluster.get(
+        "eks-cluster",
+        "StarKube",
+        opts=pulumi.ResourceOptions(retain_on_delete=True),
+    )
+    eks_oidc_issuer = (
+        eks_cluster.identities[0]
+        .oidcs[0]
+        .issuer.apply(lambda s: s.replace("https://", ""))
+    )
+
+    # The policy will allow the Amazon EFS driver to interact with the file system.
+    with open("iam-policy-efs.json") as f:
+        policy_doc = json.load(f)
+
+    eks_efs_policy = aws.iam.Policy("eks-efs-policy", path="/", policy=policy_doc)
+
+    eks_efs_csi_federation = pulumi.Output.all(
+        aws_account_id=resources["aws_account_id"],
+        eks_oidc_issuer=eks_oidc_issuer,
+    ).apply(
+        lambda args: f"arn:aws:iam::{args['aws_account_id']}:oidc-provider/{args['eks_oidc_issuer']}"
+    )
+
+    # TODO: not needed
+    pulumi.export("eks-efs-csi-federation", eks_efs_csi_federation)
+
+    # Create the IAM role, granting the Kubernetes service account the AssumeRoleWithWebIdentity action.
+    # This is required to allow the EFS CSI driver to assume the IAM role.
+    efs_csi_driver_role = aws.iam.Role(
+        "eks-efs-csi-driver",
+        assume_role_policy=pulumi.Output.all(
+            eks_efs_csi_federation=eks_efs_csi_federation,
+            eks_oidc_issuer=eks_oidc_issuer,
+        ).apply(
+            lambda args: json.dumps(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Federated": "eks-efs-csi-federation"},
+                            "Action": "sts:AssumeRoleWithWebIdentity",
+                            "Condition": {
+                                "StringEquals": {
+                                    "eks_oidc_issuer:sub": "system:serviceaccount:kube-system:efs-csi-controller-sa"
+                                }
+                            },
+                        }
+                    ],
+                }
+            )
+            .replace("eks-efs-csi-federation", args["eks_efs_csi_federation"])
+            .replace("eks_oidc_issuer", args["eks_oidc_issuer"])
+        ),
+    )
+
+    efs_csi_driver_attach = aws.iam.RolePolicyAttachment(
+        "attach-eks-efs-csi-driver",
+        role=efs_csi_driver_role.name,
+        policy_arn=eks_efs_policy.arn,
+    )
+
+    pulumi.export("efs_csi_driver_role_arn", efs_csi_driver_role.arn)
+
+    ## Create the EFS file system
+    #
+
+    # TODO: move this pulumi config
+    efs_extra_opts = {"availability_zone_name": "eu-central-1b"}
+
+    antares_k8s_efs = aws.efs.FileSystem(
+        "antares-efs",
+        tags={"Framework": "antares", "Maintainer": "tfoldi", "App": "antares"},
+        encrypted=True,
+        **efs_extra_opts,
+    )
+
+    pulumi.export("k8s_efs_id", antares_k8s_efs.id)
+
+    vpc = aws.ec2.Vpc.get(
+        "k8s_vpc",
+        "vpc-0784ff9e77fe41f8c",
+        opts=pulumi.ResourceOptions(retain_on_delete=True),
+    )
+    pulumi.export("k8s_vpc_id", vpc.id)
+
+    allow_efs = aws.ec2.SecurityGroup(
+        "allow-efs",
+        description="Allow EFS inbound traffic",
+        vpc_id=vpc.id,
+        ingress=[
+            aws.ec2.SecurityGroupIngressArgs(
+                description="TLS from VPC",
+                from_port=2049,
+                to_port=2049,
+                protocol="tcp",
+                cidr_blocks=["0.0.0.0/0"],
+                ipv6_cidr_blocks=["::/0"],
+            )
+        ],
+        egress=[
+            aws.ec2.SecurityGroupEgressArgs(
+                from_port=0,
+                to_port=0,
+                protocol="-1",
+                cidr_blocks=["0.0.0.0/0"],
+                ipv6_cidr_blocks=["::/0"],
+            )
+        ],
+        tags={
+            "Name": "allow_tls",
+        },
+    )
+
+    subnet_id = "subnet-0b113b94913ccc494"
+
+    efs_mount_target = aws.efs.MountTarget(
+        "eks-mount-target",
+        file_system_id=antares_k8s_efs.id,
+        subnet_id=subnet_id,
+        security_groups=[allow_efs.id],
+    )
