@@ -1,0 +1,6 @@
+name: antares-idl-k8s
+description: Antares iDL Kubernetes resources
+runtime:
+    name: python
+    options:
+        virtualenv: venv

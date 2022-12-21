@@ -1,0 +1,6 @@
+name: antares-idl-aws
+description: AWS Components for Antares iDL
+runtime:
+    name: python
+    options:
+        virtualenv: venv
