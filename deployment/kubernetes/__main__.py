@@ -29,7 +29,7 @@ from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpe
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.core.v1 import Namespace, Service
 from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
-import storage
+import efs_eks
 
 config = pulumi.Config()
 components = config.require_object("components")
