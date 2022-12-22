@@ -5,4 +5,4 @@ runtime:
     options:
         virtualenv: venv
 config:
-    antares-idl-k8s:components.efs: true
+    antares-idl-k8s:components.efs-eks: true
