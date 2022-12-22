@@ -26,6 +26,7 @@ import pulumi
 import json
 import pulumi_aws as aws
 
+config = pulumi.Config()
 
 def deploy_efs(resources):
 
@@ -53,9 +54,6 @@ def deploy_efs(resources):
     ).apply(
         lambda args: f"arn:aws:iam::{args['aws_account_id']}:oidc-provider/{args['eks_oidc_issuer']}"
     )
-
-    # TODO: not needed
-    pulumi.export("eks-efs-csi-federation", eks_efs_csi_federation)
 
     # Create the IAM role, granting the Kubernetes service account the AssumeRoleWithWebIdentity action.
     # This is required to allow the EFS CSI driver to assume the IAM role.
@@ -98,8 +96,9 @@ def deploy_efs(resources):
     ## Create the EFS file system
     #
 
-    # TODO: move this pulumi config
-    efs_extra_opts = {"availability_zone_name": "eu-central-1b"}
+    efs_extra_opts = {}
+    if config.get("efs") and config.require_object("efs")["availability_zone_name"]:
+        efs_extra_opts = {"availability_zone_name": config.require_object("efs")["availability_zone_name"]}
 
     antares_k8s_efs = aws.efs.FileSystem(
         "antares-efs",

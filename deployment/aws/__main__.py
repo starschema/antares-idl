@@ -36,5 +36,5 @@ pulumi.export("aws_account_id", aws_account_id)
 resources["aws_account_id"] = aws_account_id
 
 
-if components["efs"]:
+if components["efs-eks"]:
     efs_eks.deploy_efs(resources)

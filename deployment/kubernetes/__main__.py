@@ -41,5 +41,5 @@ resources = {}
 aws_stack_ref = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
 resources["aws_stack_ref"] = aws_stack_ref
 
-if components["efs"]:
-    storage.configure_efs_storage(resources)
+if components["efs-eks"]:
+    efs_eks.configure_efs_storage(resources)
