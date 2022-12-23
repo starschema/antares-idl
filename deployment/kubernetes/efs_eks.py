@@ -23,19 +23,11 @@ SOFTWARE.
 """
 
 import pulumi
-from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
-from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import (
-    ContainerArgs,
-    PodSpecArgs,
-    PodTemplateSpecArgs,
-    ServiceAccount,
-)
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import ServiceAccount
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from pulumi_kubernetes.core.v1 import Namespace, Service
-from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
+from pulumi_kubernetes.storage.v1 import StorageClass
 
-# TODO: check this eksctl utils associate-iam-oidc-provider --cluster StarKube --approve
 
 def configure_efs_storage(resources):
 
@@ -46,7 +38,9 @@ def configure_efs_storage(resources):
             name="efs-csi-controller-sa",
             namespace="kube-system",
             annotations={
-                "eks.amazonaws.com/role-arn": resources["aws_stack_ref"].get_output("efs_csi_driver_role_arn"),
+                "eks.amazonaws.com/role-arn": resources["aws_stack_ref"].get_output(
+                    "efs_csi_driver_role_arn"
+                ),
             },
         ),
     )
@@ -89,5 +83,25 @@ def configure_efs_storage(resources):
             "basePath": "/eks_dynamic",
         },
     )
+
+    resources["efs_storage_class"] = efs_storage_class
+
+    postgresql_storage_class = StorageClass(
+        "efs-postgres",
+        metadata=ObjectMetaArgs(
+            name="efs-postgres",
+        ),
+        provisioner="efs.csi.aws.com",
+        parameters={
+            "provisioningMode": "efs-ap",
+            "fileSystemId": resources["aws_stack_ref"].get_output("k8s_efs_id"),
+            "directoryPerms": "700",
+            "basePath": "/eks_dynamic",
+            "gid": "1001",
+            "uid": "1001",
+        },
+    )
+
+    resources["postgresql_storage_class"] = postgresql_storage_class
 
     return resources

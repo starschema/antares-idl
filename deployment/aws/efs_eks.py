@@ -28,12 +28,13 @@ import pulumi_aws as aws
 
 config = pulumi.Config()
 
+
 def deploy_efs(resources):
 
     # First of all get the necessary information about the EKS cluster
     eks_cluster = aws.eks.Cluster.get(
         "eks-cluster",
-        "StarKube",
+        config.require_object("efs")["eks_cluster_name"],
         opts=pulumi.ResourceOptions(retain_on_delete=True),
     )
     eks_oidc_issuer = (
@@ -85,20 +86,24 @@ def deploy_efs(resources):
         ),
     )
 
-    efs_csi_driver_attach = aws.iam.RolePolicyAttachment(
+    pulumi.export("efs_csi_driver_role_arn", efs_csi_driver_role.arn)
+
+    aws.iam.RolePolicyAttachment(
         "attach-eks-efs-csi-driver",
         role=efs_csi_driver_role.name,
         policy_arn=eks_efs_policy.arn,
     )
 
-    pulumi.export("efs_csi_driver_role_arn", efs_csi_driver_role.arn)
-
     ## Create the EFS file system
     #
-
-    efs_extra_opts = {}
     if config.get("efs") and config.require_object("efs")["availability_zone_name"]:
-        efs_extra_opts = {"availability_zone_name": config.require_object("efs")["availability_zone_name"]}
+        efs_extra_opts = {
+            "availability_zone_name": config.require_object("efs")[
+                "availability_zone_name"
+            ]
+        }
+    else:
+        efs_extra_opts = {}
 
     antares_k8s_efs = aws.efs.FileSystem(
         "antares-efs",
@@ -144,9 +149,10 @@ def deploy_efs(resources):
         },
     )
 
+    # TODO: read subnet dynamically
     subnet_id = "subnet-0b113b94913ccc494"
 
-    efs_mount_target = aws.efs.MountTarget(
+    aws.efs.MountTarget(
         "eks-mount-target",
         file_system_id=antares_k8s_efs.id,
         subnet_id=subnet_id,

@@ -25,35 +25,49 @@ SOFTWARE.
 import pulumi
 from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpecArgs
+from pulumi_kubernetes.core.v1 import (
+    ContainerArgs,
+    PodSpecArgs,
+    PodTemplateSpecArgs,
+    ServiceAccount,
+)
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.core.v1 import Namespace, Service
 from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
-import efs_eks
-import airbyte
-import postgresql
+import pulumi_random as random
 
-config = pulumi.Config()
-components = config.require_object("components")
-stack = pulumi.get_stack()
-org = config.require("org")
 
-resources = {"components": components}
+def deploy_postgresql(resources):
 
-# Create namespace for components
-resources["namespace"] = Namespace("antares")
-pulumi.output("namespace", resources["namespace"].name)
+    password = random.RandomPassword(
+        "password", length=16, special=True, override_special="_%@"
+    )
 
-# TODO check if the stack exists - it might not
-# TODO handle azure & GCP
-aws_stack_ref = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
-resources["aws_stack_ref"] = aws_stack_ref
+    if resources["components"]["efs-eks"]:
+        storage_class = resources["postgresql_storage_class"].metadata["name"]
+    else:
+        storage_class = ""
 
-if components["efs-eks"]:
-    efs_eks.configure_efs_storage(resources)
+    postgresql_release = Release(
+        "postgresql",
+        ReleaseArgs(
+            chart="postgresql",
+            name="postgresql",
+            repository_opts=RepositoryOptsArgs(
+                repo="https://charts.bitnami.com/bitnami",
+            ),
+            namespace=resources["namespace"].metadata["name"],
+            values={
+                "auth": {
+                    "username": "antares",
+                    "password": password.result,
+                    "database": "antares",
+                },
+                "global": {"storageClass": storage_class},
+            },
+        ),
+    )
 
-if components["postgresql"]:
-    postgresql.deploy_postgresql(resources)
+    resources["postgresql"] = postgresql_release
 
-if components["airbyte"]:
-    airbyte.deploy_airbyte(resources)
+    return resources
