@@ -32,6 +32,7 @@ from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
 import efs_eks
 import airbyte
 import postgresql
+import dagster
 
 config = pulumi.Config()
 components = config.require_object("components")
@@ -42,7 +43,7 @@ resources = {"components": components}
 
 # Create namespace for components
 resources["namespace"] = Namespace("antares")
-pulumi.output("namespace", resources["namespace"].name)
+pulumi.export("namespace", resources["namespace"].metadata["name"])
 
 # TODO check if the stack exists - it might not
 # TODO handle azure & GCP
@@ -57,3 +58,6 @@ if components["postgresql"]:
 
 if components["airbyte"]:
     airbyte.deploy_airbyte(resources)
+
+if components["dagster"]:
+    dagster.deploy_dagster(resources)

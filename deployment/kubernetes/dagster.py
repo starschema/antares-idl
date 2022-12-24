@@ -25,43 +25,41 @@ SOFTWARE.
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 
 
-def deploy_airbyte(resources):
+def deploy_dagster(resources):
 
     if resources["components"]["postgresql"]:
-        airbyte_helm_values = {
-            "global": {
-                "database": {
-                    "secretName": "postgresql",
-                    "secretValue": "password",
-                    "host": "postgresql",
-                }
-            },
-            "postgresql": {"enabled": False},
-            "externalDatabase": {
-                "host": "postgresql",
-                "user": resources["postgresql"].values["auth"]["username"],
-                "existingSecret": "postgresql",
-                "existingSecretPasswordKey": "password",
-                "database": resources["postgresql"].values["auth"]["database"],
+        dagster_helm_values = {
+            "postgresql": {
+                "enabled": False,
+                "postgresqlUsername": resources["postgresql"].values["auth"][
+                    "username"
+                ],
+                "postgresqlPassword": resources["postgresql"].values["auth"][
+                    "password"
+                ],
+                "postgresqlDatabase": resources["postgresql"].values["auth"][
+                    "database"
+                ],
+                "postgresqlHost": "postgresql",
             },
         }
     else:
-        airbyte_helm_values = {}
+        dagster_helm_values = {}
 
     # TODO: Add dependency in case of postgres-repository is used
-    airbyte_release = Release(
-        "airbyte",
+    dagster_release = Release(
+        "dagster",
         ReleaseArgs(
-            chart="airbyte",
-            name="airbyte",
+            chart="dagster",
+            name="dagster",
             repository_opts=RepositoryOptsArgs(
-                repo="https://airbytehq.github.io/helm-charts",
+                repo="https://dagster-io.github.io/helm",
             ),
             namespace=resources["namespace"].metadata["name"],
-            values=airbyte_helm_values,
+            values=dagster_helm_values,
         ),
     )
 
-    resources["airbyte"] = airbyte_release
+    resources["dagster"] = dagster_release
 
     return resources
