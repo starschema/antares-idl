@@ -33,6 +33,7 @@ import efs_eks
 import airbyte
 import postgresql
 import dagster
+import secrets
 
 config = pulumi.Config()
 components = config.require_object("components")
@@ -49,6 +50,9 @@ pulumi.export("namespace", resources["namespace"].metadata["name"])
 # TODO handle azure & GCP
 aws_stack_ref = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
 resources["aws_stack_ref"] = aws_stack_ref
+
+if config.get_object("secrets"):
+    secrets.deploy_secrets(resources)
 
 if components["efs-eks"]:
     efs_eks.configure_efs_storage(resources)
