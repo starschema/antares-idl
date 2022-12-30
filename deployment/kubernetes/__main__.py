@@ -38,7 +38,7 @@ import secrets
 config = pulumi.Config()
 components = config.require_object("components")
 stack = pulumi.get_stack()
-org = config.require("org")
+org = config.get("org")
 
 resources = {"components": components}
 
@@ -46,15 +46,14 @@ resources = {"components": components}
 resources["namespace"] = Namespace("antares")
 pulumi.export("namespace", resources["namespace"].metadata["name"])
 
-# TODO check if the stack exists - it might not
-# TODO handle azure & GCP
-aws_stack_ref = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
-resources["aws_stack_ref"] = aws_stack_ref
 
 if config.get_object("secrets"):
     secrets.deploy_secrets(resources)
 
 if components["efs-eks"]:
+    # TODO check if the stack exists - it might not
+    # TODO handle azure & GCP
+    resources["aws_stack_ref"] = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
     efs_eks.configure_efs_storage(resources)
 
 if components["postgresql"]:
