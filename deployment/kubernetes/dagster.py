@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
+import pulumi
 
 
 def deploy_dagster(resources):
@@ -37,16 +38,21 @@ def deploy_dagster(resources):
                 "postgresqlPassword": resources["postgresql"].values["auth"][
                     "password"
                 ],
-                "postgresqlDatabase": resources["postgresql"].values["auth"][
-                    "database"
-                ],
+                "postgresqlDatabase": "dagster",
                 "postgresqlHost": "postgresql",
             },
         }
+        depends_on = [resources["postgresql"]]
     else:
         dagster_helm_values = {}
+        depends_on = []
 
-    # TODO: Add dependency in case of postgres-repository is used
+    # TODO: fix this
+    if pulumi.Config().get_object("config"):
+        dagster_helm_values.update(
+            pulumi.Config().get_object("config")["dagster"]["helm-values"]
+        )
+
     dagster_release = Release(
         "dagster",
         ReleaseArgs(
@@ -56,8 +62,11 @@ def deploy_dagster(resources):
                 repo="https://dagster-io.github.io/helm",
             ),
             namespace=resources["namespace"].metadata["name"],
-            values=dagster_helm_values,
+            values={
+                **dagster_helm_values,
+            },
         ),
+        opts=pulumi.ResourceOptions(depends_on=depends_on),
     )
 
     resources["dagster"] = dagster_release
