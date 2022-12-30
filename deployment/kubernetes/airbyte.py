@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
+import pulumi
 
 
 def deploy_airbyte(resources):
@@ -42,13 +43,14 @@ def deploy_airbyte(resources):
                 "user": resources["postgresql"].values["auth"]["username"],
                 "existingSecret": "postgresql",
                 "existingSecretPasswordKey": "password",
-                "database": resources["postgresql"].values["auth"]["database"],
+                "database": "airbyte",
             },
         }
+        depends_on = [resources["postgresql"]]
     else:
         airbyte_helm_values = {}
+        depends_on = []
 
-    # TODO: Add dependency in case of postgres-repository is used
     airbyte_release = Release(
         "airbyte",
         ReleaseArgs(
@@ -60,6 +62,7 @@ def deploy_airbyte(resources):
             namespace=resources["namespace"].metadata["name"],
             values=airbyte_helm_values,
         ),
+        opts=pulumi.ResourceOptions(depends_on=depends_on),
     )
 
     resources["airbyte"] = airbyte_release
