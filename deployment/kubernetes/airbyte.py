@@ -22,7 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
+from pulumi_kubernetes.helm.v3 import (
+    Release,
+    ReleaseArgs,
+    RepositoryOptsArgs,
+)
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import (
+    PersistentVolumeClaim,
+    PersistentVolumeClaimSpecArgs,
+    Pod,
+    ContainerArgs,
+    PodSpecArgs,
+)
 import pulumi
 
 
@@ -66,5 +78,88 @@ def deploy_airbyte(resources):
     )
 
     resources["airbyte"] = airbyte_release
+
+    airbyte_repo_pvc = PersistentVolumeClaim(
+        "airbyte-repository-pvc",
+        metadata=ObjectMetaArgs(
+            name="airbyte-repository-pvc",
+            namespace=resources["namespace"].metadata["name"],
+        ),
+        spec=PersistentVolumeClaimSpecArgs(
+            storage_class_name="efs-sc",
+            access_modes=["ReadWriteOnce"],
+            resources={"requests": {"storage": "20M"}},
+        ),
+        opts=pulumi.ResourceOptions(depends_on=[airbyte_release]),
+    )
+
+    resources["ab_pvc"] = airbyte_repo_pvc
+
+    octavia_sidecar = (
+        Pod(
+            "airbyte-git-sync",
+            metadata=ObjectMetaArgs(
+                name="airbyte-git-sync",
+                namespace=resources["namespace"].metadata["name"],
+            ),
+            spec=PodSpecArgs(
+                restart_policy="Never",
+                volumes=[
+                    {
+                        "name": "workdir",
+                        "persistentVolumeClaim": {
+                            "claimName": airbyte_repo_pvc.metadata["name"]
+                        },
+                    }
+                ],
+                containers=[
+                    ContainerArgs(
+                        name="airbyte-octavia",
+                        image="airbyte/octavia-cli:0.40.26",
+                        image_pull_policy="IfNotPresent",
+                        args=[
+                            "--airbyte-url",
+                            "http://airbyte-airbyte-webapp-svc/",
+                            "apply",
+                            "--force",
+                        ],
+                        working_dir="/home/octavia-project/HEAD/airbyte",
+                        volume_mounts=[
+                            {"name": "workdir", "mountPath": "/home/octavia-project"}
+                        ],
+                        env_from=[{"secretRef": {"name": "database-credentials"}}],
+                    )
+                ],
+                init_containers=[
+                    ContainerArgs(
+                        name="airbyte-git-sync",
+                        image="k8s.gcr.io/git-sync/git-sync:v3.6.2",
+                        image_pull_policy="IfNotPresent",
+                        args=[
+                            "--one-time",
+                            "--root",
+                            "/home/octavia-project",
+                            "--repo",
+                            # TODO: add config management
+                            pulumi.Config().get_object("config")["airbyte"]["repo"][
+                                "url"
+                            ],
+                            # TODO: add branch
+                            "--dest",
+                            "HEAD",
+                            "--change-permissions",
+                            "0777",
+                        ],
+                        volume_mounts=[
+                            {"name": "workdir", "mountPath": "/home/octavia-project"}
+                        ],
+                        # TODO: env from config
+                        env_from=[{"secretRef": {"name": "database-credentials"}}],
+                    )
+                ],
+            ),
+            opts=pulumi.ResourceOptions(depends_on=[airbyte_release, airbyte_repo_pvc]),
+        ),
+    )
 
     return resources
