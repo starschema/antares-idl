@@ -27,9 +27,10 @@ from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
 from pulumi_kubernetes.core.v1 import ServiceAccount
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.storage.v1 import StorageClass
+from antares_common.resources import resources
 
 
-def configure_efs_storage(resources):
+def configure_efs_storage():
 
     efs_service_account = ServiceAccount(
         "efs-csi-controller-sa",
@@ -104,4 +105,4 @@ def configure_efs_storage(resources):
 
     resources["postgresql_storage_class"] = postgresql_storage_class
 
-    return resources
+    return

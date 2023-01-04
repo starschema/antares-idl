@@ -22,22 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import pulumi
-from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
-from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import (
-    ContainerArgs,
-    PodSpecArgs,
-    PodTemplateSpecArgs,
-    ServiceAccount,
-)
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from pulumi_kubernetes.core.v1 import Namespace, Service
-from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
 import pulumi_random as random
+from antares_common.resources import resources
 
 
-def deploy_postgresql(resources):
+def deploy_postgresql():
 
     password = random.RandomPassword(
         "password", length=16, special=True, override_special="_%@"
@@ -63,6 +53,15 @@ def deploy_postgresql(resources):
                     "password": password.result,
                     "database": "antares",
                 },
+                "primary": {
+                    "initdb": {
+                        "scripts": {
+                            # TODO: create database for all components
+                            "01-init-airbyte.sql": "CREATE DATABASE airbyte WITH OWNER antares;\n",
+                            "02-init-dagster.sql": "CREATE DATABASE dagster WITH OWNER antares;\n",
+                        },
+                    }
+                },
                 "global": {"storageClass": storage_class},
             },
         ),
@@ -70,4 +69,4 @@ def deploy_postgresql(resources):
 
     resources["postgresql"] = postgresql_release
 
-    return resources
+    return
