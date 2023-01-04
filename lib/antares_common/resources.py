@@ -27,5 +27,8 @@ import pulumi
 resources = {}
 
 config = pulumi.Config()
-components = config.require_object("components")
-resources["components"] = components
+resources["components"] = config.require_object("components")
+
+
+def component_enabled(component_name):
+    return resources["components"][component_name]

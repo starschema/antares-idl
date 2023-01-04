@@ -37,8 +37,8 @@ from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
 
-from antares_common.resources import resources
-from antares_common.config import config, components
+from antares_common.resources import resources, component_enabled
+from antares_common.config import config
 import efs_eks
 import airbyte
 import postgresql
@@ -54,7 +54,7 @@ pulumi.export("namespace", resources["namespace"].metadata["name"])
 if config.get("secrets"):
     secrets.deploy_secrets()
 
-if components["efs-eks"]:
+if component_enabled("efs-eks"):
     # TODO check if the stack exists - it might not
     # TODO handle azure & GCP
     resources["aws_stack_ref"] = pulumi.StackReference(
@@ -62,11 +62,11 @@ if components["efs-eks"]:
     )
     efs_eks.configure_efs_storage()
 
-if components["postgresql"]:
+if component_enabled("postgresql"):
     postgresql.deploy_postgresql()
 
-if components["airbyte"]:
+if component_enabled("airbyte"):
     airbyte.deploy_airbyte()
 
-if components["dagster"]:
+if component_enabled("dagster"):
     dagster.deploy_dagster()

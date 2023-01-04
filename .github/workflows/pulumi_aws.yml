@@ -1,4 +1,4 @@
-name: Pulumi k8s
+name: Pulumi aws
 on:
   - pull_request
 jobs:
@@ -24,7 +24,7 @@ jobs:
           stack-name: starschema/github-actions
           comment-on-pr: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          work-dir: deployment/kubernetes
+          work-dir: deployment/aws
           upsert: true
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
