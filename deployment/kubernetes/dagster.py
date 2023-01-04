@@ -24,9 +24,11 @@ SOFTWARE.
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 import pulumi
+from antares_common.resources import resources
+from antares_common.config import config
 
 
-def deploy_dagster(resources):
+def deploy_dagster():
 
     if resources["components"]["postgresql"]:
         dagster_helm_values = {
@@ -47,11 +49,7 @@ def deploy_dagster(resources):
         dagster_helm_values = {}
         depends_on = []
 
-    # TODO: fix this
-    if pulumi.Config().get_object("config"):
-        dagster_helm_values.update(
-            pulumi.Config().get_object("config")["dagster"]["helm-values"]
-        )
+    dagster_helm_values.update(config.get("/dagster/helm-values", default={}))
 
     dagster_release = Release(
         "dagster",
@@ -71,4 +69,4 @@ def deploy_dagster(resources):
 
     resources["dagster"] = dagster_release
 
-    return resources
+    return

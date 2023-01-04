@@ -37,8 +37,11 @@ from pulumi_kubernetes.core.v1 import (
 )
 import pulumi
 
+from antares_common.resources import resources
+from antares_common.config import config
 
-def deploy_airbyte(resources):
+
+def deploy_airbyte():
 
     if resources["components"]["postgresql"]:
         airbyte_helm_values = {
@@ -140,11 +143,9 @@ def deploy_airbyte(resources):
                             "--root",
                             "/home/octavia-project",
                             "--repo",
-                            # TODO: add config management
-                            pulumi.Config().get_object("config")["airbyte"]["repo"][
-                                "url"
-                            ],
-                            # TODO: add branch
+                            config.get("/airbyte/repo/url", ""),
+                            "--branch",
+                            config.get("/airbyte/repo/branch", "main"),
                             "--dest",
                             "HEAD",
                             "--change-permissions",
@@ -162,4 +163,4 @@ def deploy_airbyte(resources):
         ),
     )
 
-    return resources
+    return

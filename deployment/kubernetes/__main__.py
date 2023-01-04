@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import os
+import sys
+import inspect
 import pulumi
 from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
@@ -29,38 +32,41 @@ from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpe
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.core.v1 import Namespace, Service
 from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
+
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, f"{currentdir}/../../lib")
+
+from antares_common.resources import resources
+from antares_common.config import config, components
 import efs_eks
 import airbyte
 import postgresql
 import dagster
 import secrets
 
-config = pulumi.Config()
-components = config.require_object("components")
-stack = pulumi.get_stack()
-org = config.get("org")
-
-resources = {"components": components}
 
 # Create namespace for components
 resources["namespace"] = Namespace("antares")
 pulumi.export("namespace", resources["namespace"].metadata["name"])
 
 
-if config.get_object("secrets"):
-    secrets.deploy_secrets(resources)
+if config.get("secrets"):
+    secrets.deploy_secrets()
 
 if components["efs-eks"]:
     # TODO check if the stack exists - it might not
     # TODO handle azure & GCP
-    resources["aws_stack_ref"] = pulumi.StackReference(f"{org}/antares-idl-aws/{stack}")
-    efs_eks.configure_efs_storage(resources)
+    resources["aws_stack_ref"] = pulumi.StackReference(
+        f"{config.org}/antares-idl-aws/{config.stack}"
+    )
+    efs_eks.configure_efs_storage()
 
 if components["postgresql"]:
-    postgresql.deploy_postgresql(resources)
+    postgresql.deploy_postgresql()
 
 if components["airbyte"]:
-    airbyte.deploy_airbyte(resources)
+    airbyte.deploy_airbyte()
 
 if components["dagster"]:
-    dagster.deploy_dagster(resources)
+    dagster.deploy_dagster()

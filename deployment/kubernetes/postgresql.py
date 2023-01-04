@@ -24,9 +24,10 @@ SOFTWARE.
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 import pulumi_random as random
+from antares_common.resources import resources
 
 
-def deploy_postgresql(resources):
+def deploy_postgresql():
 
     password = random.RandomPassword(
         "password", length=16, special=True, override_special="_%@"
@@ -68,4 +69,4 @@ def deploy_postgresql(resources):
 
     resources["postgresql"] = postgresql_release
 
-    return resources
+    return

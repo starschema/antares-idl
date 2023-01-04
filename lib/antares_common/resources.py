@@ -22,24 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from pulumi_kubernetes.core.v1 import Secret, SecretInitArgs
-from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
-from antares_common.resources import resources
-from antares_common.config import config
+import pulumi
 
+resources = {}
 
-def deploy_secrets():
-
-    for name, secret in config.get("secrets", {}).items():
-        resources[name] = Secret(
-            name,
-            SecretInitArgs(
-                string_data=secret,
-                metadata=ObjectMetaArgs(
-                    namespace=resources["namespace"].metadata["name"],
-                    name=name,
-                ),
-            ),
-        )
-
-    return
+config = pulumi.Config()
+components = config.require_object("components")
+resources["components"] = components
