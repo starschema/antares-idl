@@ -25,16 +25,16 @@ SOFTWARE.
 import pulumi
 import json
 import pulumi_aws as aws
+from antares_common.resources import resources
+from antares_common.config import config
 
-config = pulumi.Config()
 
-
-def deploy_efs(resources):
+def deploy_efs():
 
     # First of all get the necessary information about the EKS cluster
     eks_cluster = aws.eks.Cluster.get(
         "eks-cluster",
-        config.require_object("efs")["eks_cluster_name"],
+        config["/efs-eks/eks_cluster_name"][:],
         opts=pulumi.ResourceOptions(retain_on_delete=True),
     )
     eks_oidc_issuer = (
@@ -94,13 +94,10 @@ def deploy_efs(resources):
         policy_arn=eks_efs_policy.arn,
     )
 
-    ## Create the EFS file system
-    #
-    if config.get("efs") and config.require_object("efs")["availability_zone_name"]:
+    # Create the EFS file system
+    if config.get("/efs-eks/availability_zone_name"):
         efs_extra_opts = {
-            "availability_zone_name": config.require_object("efs")[
-                "availability_zone_name"
-            ]
+            "availability_zone_name": config["/efs-eks/availability_zone_name"][:]
         }
     else:
         efs_extra_opts = {}

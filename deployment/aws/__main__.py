@@ -22,19 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
+import os
+import sys
+import inspect
 import pulumi
 import pulumi_aws as aws
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, f"{currentdir}/../../lib")
+
 import efs_eks
+from antares_common.resources import resources, component_enabled
 
-resources = {}
-
-config = pulumi.Config()
-components = config.require_object("components")
 
 aws_account_id = aws.get_caller_identity().account_id
 pulumi.export("aws_account_id", aws_account_id)
 resources["aws_account_id"] = aws_account_id
 
 
-if components["efs-eks"]:
-    efs_eks.deploy_efs(resources)
+if component_enabled("efs-eks"):
+    efs_eks.deploy_efs()
