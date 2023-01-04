@@ -28,7 +28,7 @@ import nob
 pulumi_config = pulumi.Config()
 
 config = nob.Nob(pulumi.Config().get_object("config"))
-config["org"] = pulumi_config.require("org")
+config["org"] = pulumi_config.get("org")
 config["stack"] = pulumi.get_stack()
 
 
