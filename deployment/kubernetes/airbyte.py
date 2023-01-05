@@ -56,9 +56,8 @@ def deploy_airbyte():
             "externalDatabase": {
                 "host": "postgresql",
                 "user": resources["postgresql"].values["auth"]["username"],
-                "existingSecret": "postgresql",
-                "existingSecretPasswordKey": "password",
                 "database": "airbyte",
+                "password": resources["postgresql"].values["auth"]["password"],
             },
         }
         depends_on = [resources["postgresql"]]
@@ -75,7 +74,7 @@ def deploy_airbyte():
                 repo="https://airbytehq.github.io/helm-charts",
             ),
             namespace=resources["namespace"].metadata["name"],
-            values=airbyte_helm_values,
+            values={**airbyte_helm_values, **(config.get("/airbyte/helm-values", {}))},
         ),
         opts=pulumi.ResourceOptions(depends_on=depends_on),
     )
