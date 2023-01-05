@@ -49,6 +49,9 @@ def deploy_dagster():
         dagster_helm_values = {}
         depends_on = []
 
+    if resources["components"]["airbyte"] and resources.get("ab_pvc"):
+        depends_on.append(resources["ab_pvc"])
+
     dagster_helm_values.update(config.get("/dagster/helm-values", default={}))
 
     dagster_release = Release(

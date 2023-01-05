@@ -25,6 +25,7 @@ SOFTWARE.
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 import pulumi_random as random
 from antares_common.resources import resources
+from antares_common.config import config
 
 
 def deploy_postgresql():
@@ -63,6 +64,7 @@ def deploy_postgresql():
                     }
                 },
                 "global": {"storageClass": storage_class},
+                **(config.get("/postgresql/helm-values", {})),
             },
         ),
     )
