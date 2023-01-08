@@ -22,10 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import pulumi_kubernetes as kubernetes
+import pulumi
 from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpecArgs
+from pulumi_kubernetes.core.v1 import (
+    ContainerArgs,
+    PodSpecArgs,
+    PodTemplateSpecArgs,
+    Service,
+    ServiceSpecArgs,
+    ServicePortArgs,
+)
 from antares_common.resources import resources
 from antares_common.config import config
 
@@ -34,10 +41,13 @@ def deploy():
 
     app_labels = {"app": "hvr", "app_type": "ingestion"}
 
+    hvr_http_port = config.get("/hvr/port", "4340")
+
     hvr_deployment = Deployment(
         "hvr-deployment",
         metadata=ObjectMetaArgs(
             namespace=resources["namespace"].metadata["name"],
+            labels=app_labels,
         ),
         spec=DeploymentSpecArgs(
             selector=LabelSelectorArgs(match_labels=app_labels),
@@ -54,11 +64,76 @@ def deploy():
                             image=resources["aws_stack_ref"].get_output(
                                 "hvr-full-image-name"
                             ),
-                            command=["sleep"],
-                            args=["1000000"],
+                            # command=["sleep"],
+                            # args=["1000000"],
+                            volume_mounts=[
+                                {
+                                    "name": "hvr-license",
+                                    "mountPath": "/hvr/hvr_home/license",
+                                }
+                            ],
+                            env=[
+                                {"name": "HVR_HTTP_PORT", "value": hvr_http_port},
+                                {"name": "HVR_REPO_CLASS", "value": "postgresql"},
+                                {
+                                    "name": "HVR_DB_HOST",
+                                    "value": "postgresql",
+                                },
+                                {
+                                    "name": "HVR_DB_PORT",
+                                    "value": "5432",
+                                },
+                                {"name": "HVR_DB_NAME", "value": "hvr"},
+                                {
+                                    "name": "HVR_DB_USERNAME",
+                                    "value": resources["postgresql"].values["auth"][
+                                        "username"
+                                    ],
+                                },
+                                {
+                                    "name": "HVR_DB_PASSWORD",
+                                    "value": resources["postgresql"].values["auth"][
+                                        "password"
+                                    ],
+                                },
+                            ],
                         )
-                    ]
+                    ],
+                    volumes=[
+                        {
+                            "name": "hvr-license",
+                            "secret": {
+                                "secretName": "hvr-license",
+                                "items": [{"key": "license", "path": "hvr.lic"}],
+                            },
+                        }
+                    ],
                 ),
             ),
         ),
     )
+
+    resources["hvr-deployment"] = hvr_deployment
+
+    service = Service(
+        "hvr-service",
+        metadata=ObjectMetaArgs(
+            namespace=resources["namespace"].metadata["name"],
+            labels=app_labels,
+        ),
+        spec=ServiceSpecArgs(
+            ports=[
+                ServicePortArgs(
+                    port=int(hvr_http_port),
+                    protocol="TCP",
+                    target_port=int(hvr_http_port),
+                )
+            ],
+            selector=app_labels,
+            session_affinity="None",
+            type="ClusterIP",
+        ),
+        opts=pulumi.ResourceOptions(depends_on=[hvr_deployment]),
+    )
+
+    resources["hvr-service"] = service
