@@ -41,9 +41,9 @@ from antares_common.resources import resources
 from antares_common.config import config
 
 
-def deploy_airbyte():
+def deploy():
 
-    if resources["components"]["postgresql"]:
+    if config["components"]["postgresql"][:]:
         airbyte_helm_values = {
             "global": {
                 "database": {

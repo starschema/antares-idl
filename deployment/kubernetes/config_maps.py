@@ -22,14 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from pulumi_kubernetes.core.v1 import ConfigMap, ConfigMapInitArgs
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from antares_common.resources import resources
 from antares_common.config import config
 
-resources = {}
 
+def deploy():
 
-def component_enabled(component_name):
-    return config["components"][component_name][:]
+    for name, config_map in config.get("configmaps", {}).items():
+        resources[name] = ConfigMap(
+            name,
+            ConfigMapInitArgs(
+                data=config_map,
+                metadata=ObjectMetaArgs(
+                    namespace=resources["namespace"].metadata["name"],
+                    name=name,
+                ),
+            ),
+        )
 
-
-def enabled_components():
-    return [key for key, value in config.get("/components").items() if value]
+    return

@@ -22,24 +22,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from pulumi_kubernetes.core.v1 import Secret, SecretInitArgs
-from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+import pulumi_kubernetes as kubernetes
+from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
+from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpecArgs
 from antares_common.resources import resources
 from antares_common.config import config
 
 
 def deploy():
 
-    for name, secret in config.get("secrets", {}).items():
-        resources[name] = Secret(
-            name,
-            SecretInitArgs(
-                string_data=secret,
+    app_labels = {"app": "hvr", "app_type": "ingestion"}
+
+    hvr_deployment = Deployment(
+        "hvr-deployment",
+        metadata=ObjectMetaArgs(
+            namespace=resources["namespace"].metadata["name"],
+        ),
+        spec=DeploymentSpecArgs(
+            selector=LabelSelectorArgs(match_labels=app_labels),
+            replicas=1,
+            template=PodTemplateSpecArgs(
                 metadata=ObjectMetaArgs(
+                    labels=app_labels,
                     namespace=resources["namespace"].metadata["name"],
-                    name=name,
+                ),
+                spec=PodSpecArgs(
+                    containers=[
+                        ContainerArgs(
+                            name="hvr",
+                            image=resources["aws_stack_ref"].get_output(
+                                "hvr-full-image-name"
+                            ),
+                            command=["sleep"],
+                            args=["1000000"],
+                        )
+                    ]
                 ),
             ),
-        )
-
-    return
+        ),
+    )

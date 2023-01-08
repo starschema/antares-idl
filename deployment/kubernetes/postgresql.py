@@ -28,13 +28,13 @@ from antares_common.resources import resources
 from antares_common.config import config
 
 
-def deploy_postgresql():
+def deploy():
 
     password = random.RandomPassword(
         "password", length=16, special=True, override_special="_%@"
     )
 
-    if resources["components"]["efs-eks"]:
+    if config["components"]["efs-eks"][:]:
         storage_class = resources["postgresql_storage_class"].metadata["name"]
     else:
         storage_class = ""
@@ -60,6 +60,7 @@ def deploy_postgresql():
                             # TODO: create database for all components
                             "01-init-airbyte.sql": "CREATE DATABASE airbyte WITH OWNER antares;\n",
                             "02-init-dagster.sql": "CREATE DATABASE dagster WITH OWNER antares;\n",
+                            "03-init-hvr.sql": "CREATE DATABASE hvr WITH OWNER antares;\n",
                         },
                     }
                 },
