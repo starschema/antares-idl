@@ -113,7 +113,7 @@ def deploy_efs():
 
     vpc = aws.ec2.Vpc.get(
         "k8s_vpc",
-        "vpc-0784ff9e77fe41f8c",
+        eks_cluster.vpc_config.vpc_id,
         opts=pulumi.ResourceOptions(retain_on_delete=True),
     )
     pulumi.export("k8s_vpc_id", vpc.id)
@@ -146,12 +146,14 @@ def deploy_efs():
         },
     )
 
-    # TODO: read subnet dynamically
-    subnet_id = "subnet-0b113b94913ccc494"
+    def create_mount_for_subnets(vpc_config):
+        # TODO: pick one subnet per supported AZ
+        for subnet_id in vpc_config.subnet_ids[:1]:
+            aws.efs.MountTarget(
+                f"eks-mount-target-{subnet_id}",
+                file_system_id=antares_k8s_efs.id,
+                subnet_id=subnet_id,
+                security_groups=[allow_efs.id],
+            )
 
-    aws.efs.MountTarget(
-        "eks-mount-target",
-        file_system_id=antares_k8s_efs.id,
-        subnet_id=subnet_id,
-        security_groups=[allow_efs.id],
-    )
+    eks_cluster.vpc_config.apply(create_mount_for_subnets)
