@@ -33,6 +33,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 sys.path.insert(0, f"{currentdir}/../../lib")
 
 import efs_eks
+import msk
 from antares_common.resources import resources, component_enabled
 
 
@@ -43,3 +44,7 @@ resources["aws_account_id"] = aws_account_id
 
 if component_enabled("efs-eks"):
     efs_eks.deploy_efs()
+
+
+if component_enabled("msk"):
+    msk.deploy_msk()

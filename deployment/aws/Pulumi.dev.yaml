@@ -1,0 +1,27 @@
+config:
+  aws:region: eu-central-1
+  antares-idl-aws:efs-eks:
+    availability_zone_name: eu-central-1b
+    eks_cluster_name: StarKube
+  
+  antares-idl-aws:msk:
+    kafka-version: 2.8.1
+    kafka-instance-type: kafka.t3.small
+   
+    kafka-username: KafkaUser
+    kafka-password:
+      secure: AAABAB3JzJNoftp07hfk3UyDVwGwlPnYWlSIC07ykyzTzczubCBalf6CJhOk7Js4QrCgPDKbxTk=
+    private-ca-arn: arn:aws:acm-pca:eu-central-1:358845015454:certificate-authority/eddc6eb2-04cc-4243-bcea-0833b62cfd83
+    use-tls-auth: "false"
+    
+    vpc-id: vpc-0fb1fffdc5c2088b1
+    subnets:
+      - subnet-0880d7fd1ec164907
+      - subnet-0f1a439e5e4ecc94f
+      - subnet-04fd44e323f8cb595
+    
+    kafka-connect-snowflake-password:
+      secure: AAABAIz+q29Vv4unAtbBpkicPRYQOx+PyyEGaLJ2BKpHH8fiimtzAF33RP2mCJlOSdSaO9oSs0s=
+    kafka-connect-snowflake-username: antares_kafka
+   
+

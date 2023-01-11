@@ -1,0 +1,6 @@
+config:
+  snowflake:account: starschema_aws_eu_central
+  snowflake:password:
+    secure: AAABACXBEWToJNC+iqiDszq+uSTtjVUXPDSJv6O5gzh06B0DrtTJcxQdpV0=
+  snowflake:region: eu-central-1
+  snowflake:username: antares_admin

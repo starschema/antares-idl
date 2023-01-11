@@ -1,0 +1,6 @@
+name: antares-idl-snowflake
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Antares Snowflake for MSK/Kafka ingestion
