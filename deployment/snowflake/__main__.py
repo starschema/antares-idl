@@ -73,8 +73,6 @@ tls_key = tls.PrivateKey(
     "tls-key", algorithm="RSA", rsa_bits=4096
 )
 
-tls_key.public_key_openssh.apply(lambda key: open("public_key", "w").write(key))
-
 password = random.RandomPassword(
     "password", length=16, special=True
 )
