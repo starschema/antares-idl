@@ -22,11 +22,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Copy files to the test website with the AWS CLI
         run: aws eks update-kubeconfig --region eu-central-1 --name StarKube
-      - run: cat "$PULUMI_AWS_YAML" > deployment/aws/Pulumi.production.yaml
+      - run: echo "$PULUMI_AWS_YAML" > deployment/aws/Pulumi.production.yaml
         env:
           PULUMI_AWS_YAML: ${{ secrets.PULUMI_AWS_YAML }}
-          PULUMI_K8S_YAML: ${{ secrets.PULUMI_K8S_YAML }}
-      - run: cat "$PULUMI_K8S_YAML" > deployment/kubernetes/Pulumi.production.yaml
+      - run: echo "$PULUMI_K8S_YAML" > deployment/kubernetes/Pulumi.production.yaml
+        env:
+          PULUMI_K8S_YAML: ${{ secrets.PULUMI_K8S_YAML }}      
       # - name: Pulumi AWS 
       #   uses: pulumi/actions@v3
       #   with:
