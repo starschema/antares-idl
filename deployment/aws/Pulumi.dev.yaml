@@ -19,9 +19,3 @@ config:
       - subnet-0880d7fd1ec164907
       - subnet-0f1a439e5e4ecc94f
       - subnet-04fd44e323f8cb595
-    
-    kafka-connect-snowflake-password:
-      secure: AAABAIz+q29Vv4unAtbBpkicPRYQOx+PyyEGaLJ2BKpHH8fiimtzAF33RP2mCJlOSdSaO9oSs0s=
-    kafka-connect-snowflake-username: antares_kafka
-   
-

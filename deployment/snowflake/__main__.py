@@ -100,6 +100,6 @@ role_grant = snowflake.RoleGrants(
 pulumi.export("user", user.name)
 pulumi.export("password", password.result)
 pulumi.export("private-key", tls_key.private_key_pem)
-pulumi.export("public-key", tls_key.public_key_pem)
+pulumi.export("public-key", public_key)
 pulumi.export("reader-role", reader_role.name)
 pulumi.export("writer-role", writer_role.name)
