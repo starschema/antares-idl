@@ -32,4 +32,4 @@ def component_enabled(component_name):
 
 
 def enabled_components():
-    return [key for key, value in config.get("/components").items() if value]
+    return {key for key, value in config.get("/components").items() if value}

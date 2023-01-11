@@ -33,7 +33,7 @@ from pulumi_kubernetes.core.v1 import (
     ServiceSpecArgs,
     ServicePortArgs,
 )
-from antares_common.resources import resources
+from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
@@ -43,11 +43,37 @@ def deploy():
 
     hvr_http_port = config.get("/hvr/port", "4340")
 
+    if component_enabled("postgresql"):
+        hvr_env = [
+            {"name": "HVR_HTTP_PORT", "value": hvr_http_port},
+            {"name": "HVR_REPO_CLASS", "value": "postgresql"},
+            {
+                "name": "HVR_DB_HOST",
+                "value": "postgresql",
+            },
+            {
+                "name": "HVR_DB_PORT",
+                "value": "5432",
+            },
+            {"name": "HVR_DB_NAME", "value": "hvr"},
+            {
+                "name": "HVR_DB_USERNAME",
+                "value": resources["postgresql"].values["auth"]["username"],
+            },
+            {
+                "name": "HVR_DB_PASSWORD",
+                "value": resources["postgresql"].values["auth"]["password"],
+            },
+        ]
+
+    else:
+        hvr_env = []
+
     hvr_deployment = Deployment(
         "hvr-deployment",
         metadata=ObjectMetaArgs(
             namespace=resources["namespace"].metadata["name"],
-            labels=app_labels,
+            labels={**app_labels, **config.get("labels", {})},
         ),
         spec=DeploymentSpecArgs(
             selector=LabelSelectorArgs(match_labels=app_labels),
@@ -72,31 +98,7 @@ def deploy():
                                     "mountPath": "/hvr/hvr_home/license",
                                 }
                             ],
-                            env=[
-                                {"name": "HVR_HTTP_PORT", "value": hvr_http_port},
-                                {"name": "HVR_REPO_CLASS", "value": "postgresql"},
-                                {
-                                    "name": "HVR_DB_HOST",
-                                    "value": "postgresql",
-                                },
-                                {
-                                    "name": "HVR_DB_PORT",
-                                    "value": "5432",
-                                },
-                                {"name": "HVR_DB_NAME", "value": "hvr"},
-                                {
-                                    "name": "HVR_DB_USERNAME",
-                                    "value": resources["postgresql"].values["auth"][
-                                        "username"
-                                    ],
-                                },
-                                {
-                                    "name": "HVR_DB_PASSWORD",
-                                    "value": resources["postgresql"].values["auth"][
-                                        "password"
-                                    ],
-                                },
-                            ],
+                            env=hvr_env,
                         )
                     ],
                     volumes=[
@@ -111,6 +113,7 @@ def deploy():
                 ),
             ),
         ),
+        opts=pulumi.ResourceOptions(depends_on=[resources["postgresql"]]),
     )
 
     resources["hvr-deployment"] = hvr_deployment

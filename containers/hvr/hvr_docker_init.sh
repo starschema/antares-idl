@@ -18,6 +18,7 @@ hvrreposconfig -c
 hvrlicense ${HVR_HOME}/license/hvr.lic
 
 #hvruserconfig -c admin
+#cat /tmp/aa | hvruserconfig -c admin
 #hvrreposconfig -A user:admin=SysAdmin
 
 hvrwalletconfig -c Type=DISABLED

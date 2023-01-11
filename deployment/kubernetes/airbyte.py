@@ -37,13 +37,13 @@ from pulumi_kubernetes.core.v1 import (
 )
 import pulumi
 
-from antares_common.resources import resources
+from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
 def deploy():
 
-    if config["components"]["postgresql"][:]:
+    if component_enabled("postgresql"):
         airbyte_helm_values = {
             "global": {
                 "database": {
@@ -88,6 +88,7 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec=PersistentVolumeClaimSpecArgs(
+            # TODO: take it from config
             storage_class_name="efs-sc",
             access_modes=["ReadWriteOnce"],
             resources={"requests": {"storage": "20M"}},

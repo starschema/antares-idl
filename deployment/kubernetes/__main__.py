@@ -37,7 +37,7 @@ from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
 
-from antares_common.resources import resources, component_enabled, enabled_components
+from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 import secrets
 import config_maps
@@ -49,7 +49,13 @@ import postgresql
 
 
 # Create namespace for components
-resources["namespace"] = Namespace("antares")
+resources["namespace"] = Namespace(
+    "antares",
+    metadata=ObjectMetaArgs(
+        name=f"antares-{config.stack}",
+        labels={**config.get("labels", {})},
+    ),
+)
 pulumi.export("namespace", resources["namespace"].metadata["name"])
 
 

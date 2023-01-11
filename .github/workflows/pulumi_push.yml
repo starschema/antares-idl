@@ -1,4 +1,4 @@
-name: Pulumi aws
+name: Pulumi k8s
 on:
   - pull_request
 jobs:
@@ -18,13 +18,25 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-region: ${{ secrets.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - uses: pulumi/actions@v3
+      - name: Pulumi AWS 
+        uses: pulumi/actions@v3
         with:
           command: preview
           stack-name: starschema/github-actions
           comment-on-pr: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           work-dir: deployment/aws
+          upsert: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}      
+      - name: Pulumi K8s
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: starschema/github-actions
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: deployment/kubernetes
           upsert: true
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
