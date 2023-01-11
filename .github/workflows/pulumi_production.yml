@@ -22,9 +22,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Copy files to the test website with the AWS CLI
         run: aws eks update-kubeconfig --region eu-central-1 --name StarKube
-      - uses: actions-hub/kubectl@master
-        with:
-          args: get storageclasses --all-namespaces
       - run: cat "$PULUMI_AWS_YAML" > deployment/aws/Pulumi.production.yaml
         env:
           PULUMI_AWS_YAML: ${{ secrets.PULUMI_AWS_YAML }}
