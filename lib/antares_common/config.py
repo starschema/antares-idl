@@ -25,6 +25,11 @@ SOFTWARE.
 import pulumi
 import nob
 
+
+def parse_config(name=None):
+    return pulumi.Config(name=name)
+
+
 pulumi_config = pulumi.Config()
 
 config = nob.Nob(pulumi_config.get_object("config"))

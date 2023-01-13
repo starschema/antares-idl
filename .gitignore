@@ -129,3 +129,9 @@ dmypy.json
 
 .DS_Store
 *.code-workspace
+
+.vscode/*
+logs
+kafka_admin_lambda.zip
+*kafka-connector*.zip
+kafka_admin_lambda

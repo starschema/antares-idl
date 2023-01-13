@@ -1,4 +1,12 @@
 config:
+  antares-idl-snowflake:components:
+    snowflake: true
+  antares-idl-snowflake:config:
+    snowflake:
+      default-warehouse: ANTARES_WAREHOUSE
+      warehouse-size: X-SMALL
+      organization: starschema
+      
   snowflake:account: starschema_aws_eu_central
   snowflake:password:
     secure: AAABACXBEWToJNC+iqiDszq+uSTtjVUXPDSJv6O5gzh06B0DrtTJcxQdpV0=

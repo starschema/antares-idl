@@ -1,0 +1,57 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:Connect",
+                "kafka-cluster:DescribeGroup",
+                "kafka-cluster:AlterGroup",
+                "kafka-cluster:ReadData",
+                "kafka-cluster:CreateTopic",
+                "kafka-cluster:DescribeTopic",
+                "kafka-cluster:DescribeClusterDynamicConfiguration"
+            ],
+            "Resource": [
+                "arn:aws:kafka:$$region$$:$$account-id$$:cluster/$$cluster-name$$/$$cluster-uuid$$",
+                "arn:aws:kafka:$$region$$:$$account-id$$:topic/$$cluster-name$$/$$cluster-uuid$$/*",
+                "arn:aws:kafka:$$region$$:$$account-id$$:group/$$cluster-name$$/$$cluster-uuid$$/*"
+            ]
+        },
+        {
+            "Action": [
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:CreateNetworkInterface",
+                "ec2:DeleteNetworkInterface",
+                "ec2:DescribeInstances",
+                "ec2:AttachNetworkInterface"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "secretsmanager:GetSecretValue"
+            ],
+            "Resource": "$$secret-arn$$",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "kms:Decrypt",
+                "kms:DescribeKey"
+            ],
+            "Resource": "$$kms-key-arn$$",
+            "Effect": "Allow"
+        }
+    ]
+}

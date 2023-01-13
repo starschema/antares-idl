@@ -4,3 +4,5 @@ runtime:
   options:
     virtualenv: venv
 description: Antares Snowflake for MSK/Kafka ingestion
+config:
+    antares-idl-snowflake:org: starschema
