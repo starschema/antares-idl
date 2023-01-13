@@ -46,7 +46,6 @@ resources["aws_account_id"] = aws_account_id
 if component_enabled("efs-eks"):
     efs_eks.deploy_efs()
 
-
 if component_enabled("msk"):
     msk.deploy_msk()
 
