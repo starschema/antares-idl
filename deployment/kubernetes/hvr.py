@@ -87,6 +87,15 @@ def deploy():
         }
     )
 
+    docker_image = config.get("/hvr/docker-image")
+
+    if not docker_image:
+        if config.get("/cloud/type") == "aws":
+            docker_image = resources["aws_stack_ref"].get_output("hvr-full-image-name")
+        # TODO: add azure and GCP
+        else:
+            docker_image = "hvr"
+
     hvr_config_pvc = PersistentVolumeClaim(
         "hvr-config-pvc",
         metadata=ObjectMetaArgs(
@@ -122,9 +131,7 @@ def deploy():
                     containers=[
                         ContainerArgs(
                             name="hvr",
-                            image=resources["aws_stack_ref"].get_output(
-                                "hvr-full-image-name"
-                            ),
+                            image=docker_image,
                             volume_mounts=[
                                 {
                                     "name": "hvr-license",
