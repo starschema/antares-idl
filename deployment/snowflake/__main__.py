@@ -141,7 +141,7 @@ pulumi.export("writer-role", writer_role.name)
 
 snowflake_config = pulumi.Config(name="snowflake")
 snowflake_account = snowflake_config.get("account")
-snowflake_organization = config["/snowflake/organization"]
+snowflake_organization = config.get("/snowflake/organization")
 snowflake_region = snowflake_config.get("region")
 pulumi.export(
     "snowflake-url",

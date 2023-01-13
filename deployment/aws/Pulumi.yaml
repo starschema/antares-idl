@@ -5,7 +5,6 @@ runtime:
     options:
         virtualenv: venv
 config:
-    antares-idl-aws:org: starschema
     antares-idl-aws:components.efs-eks: true
     antares-idl-aws:components.ecr: true
     antares-idl-aws:components.msk: true
