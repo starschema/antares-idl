@@ -1,0 +1,6 @@
+config:
+  antares-idl-aws:config:
+    efs-eks:
+      eks_cluster_name: cluster
+
+  aws:region: us-east-1
