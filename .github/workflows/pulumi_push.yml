@@ -1,4 +1,4 @@
-name: Pulumi k8s
+name: Pulumi preview
 on:
   - pull_request
 jobs:
