@@ -9,3 +9,4 @@ config:
     antares-idl-k8s:components.postgresql: true
     antares-idl-k8s:components.dagster: true
     antares-idl-k8s:components.efs-eks: false
+    antares-idl-k8s:components.hvr: true

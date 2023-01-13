@@ -39,34 +39,50 @@ sys.path.insert(0, f"{currentdir}/../../lib")
 
 from antares_common.resources import resources, component_enabled
 from antares_common.config import config
-import efs_eks
-import airbyte
-import postgresql
-import dagster
 import secrets
+import config_maps
+import efs_eks
+import dagster
+import airbyte
+import hvr
+import postgresql
 
 
 # Create namespace for components
-resources["namespace"] = Namespace("antares")
+resources["namespace"] = Namespace(
+    "antares",
+    metadata=ObjectMetaArgs(
+        name=f"antares-{config.stack}",
+        labels={**config.get("labels", {})},
+    ),
+)
 pulumi.export("namespace", resources["namespace"].metadata["name"])
 
 
+# if we are in the cloud, then let's load the cloud stack stack ref's
+if config.get("/cloud/type"):
+    resources[f"{config.cloud.type}_stack_ref"] = pulumi.StackReference(
+        f"{config.org}/antares-idl-{config.cloud.type}/{config.stack}"
+    )
+
 if config.get("secrets"):
-    secrets.deploy_secrets()
+    secrets.deploy()
+
+if config.get("config_maps"):
+    config_maps.deploy()
+
 
 if component_enabled("efs-eks"):
-    # TODO check if the stack exists - it might not
-    # TODO handle azure & GCP
-    resources["aws_stack_ref"] = pulumi.StackReference(
-        f"{config.org}/antares-idl-aws/{config.stack}"
-    )
-    efs_eks.configure_efs_storage()
+    efs_eks.deploy()
 
 if component_enabled("postgresql"):
-    postgresql.deploy_postgresql()
+    postgresql.deploy()
 
 if component_enabled("airbyte"):
-    airbyte.deploy_airbyte()
+    airbyte.deploy()
+
+if component_enabled("hvr"):
+    hvr.deploy()
 
 if component_enabled("dagster"):
-    dagster.deploy_dagster()
+    dagster.deploy()

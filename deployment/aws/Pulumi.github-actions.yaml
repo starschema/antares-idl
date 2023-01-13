@@ -1,0 +1,8 @@
+config:
+  antares-idl-aws:components:
+    efs-eks: false
+  antares-idl-aws:config:
+    efs-eks:
+      eks_cluster_name: cluster
+
+  aws:region: eu-central-1

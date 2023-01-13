@@ -34,6 +34,7 @@ sys.path.insert(0, f"{currentdir}/../../lib")
 
 import efs_eks
 import msk
+import ecr
 from antares_common.resources import resources, component_enabled
 
 
@@ -48,3 +49,6 @@ if component_enabled("efs-eks"):
 
 if component_enabled("msk"):
     msk.deploy_msk()
+
+if component_enabled("ecr"):
+    ecr.deploy_ecr()

@@ -28,9 +28,9 @@ from antares_common.resources import resources
 from antares_common.config import config
 
 
-def deploy_dagster():
+def deploy():
 
-    if resources["components"]["postgresql"]:
+    if config["components"]["postgresql"][:]:
         dagster_helm_values = {
             "postgresql": {
                 "enabled": False,
@@ -49,7 +49,7 @@ def deploy_dagster():
         dagster_helm_values = {}
         depends_on = []
 
-    if resources["components"]["airbyte"] and resources.get("ab_pvc"):
+    if config["components"]["airbyte"][:] and resources.get("ab_pvc"):
         depends_on.append(resources["ab_pvc"])
 
     dagster_helm_values.update(config.get("/dagster/helm-values", default={}))

@@ -30,7 +30,7 @@ from pulumi_kubernetes.storage.v1 import StorageClass
 from antares_common.resources import resources
 
 
-def configure_efs_storage():
+def deploy():
 
     efs_service_account = ServiceAccount(
         "efs-csi-controller-sa",
