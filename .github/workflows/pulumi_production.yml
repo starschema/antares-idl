@@ -20,7 +20,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-region: ${{ secrets.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Copy files to the test website with the AWS CLI
+      - name: Set up kubectl
         run: aws eks update-kubeconfig --region eu-central-1 --name StarKube
       - run: cat "$PULUMI_AWS_YAML" > deployment/aws/Pulumi.production.yaml
         env:
