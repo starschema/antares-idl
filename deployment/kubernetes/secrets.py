@@ -28,7 +28,7 @@ from antares_common.resources import resources
 from antares_common.config import config
 
 
-def deploy_secrets():
+def deploy():
 
     for name, secret in config.get("secrets", {}).items():
         resources[name] = Secret(

@@ -24,20 +24,21 @@ SOFTWARE.
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 import pulumi_random as random
-from antares_common.resources import resources
+from antares_common.resources import resources, enabled_components
 from antares_common.config import config
 
 
-def deploy_postgresql():
+def deploy():
 
     password = random.RandomPassword(
         "password", length=16, special=True, override_special="_%@"
     )
 
-    if resources["components"]["efs-eks"]:
+    if config["components"]["efs-eks"][:]:
         storage_class = resources["postgresql_storage_class"].metadata["name"]
     else:
-        storage_class = ""
+        # TODO: check without storage class
+        storage_class = config.get("/postgresql/storage-class", "")
 
     postgresql_release = Release(
         "postgresql",
@@ -56,11 +57,15 @@ def deploy_postgresql():
                 },
                 "primary": {
                     "initdb": {
-                        "scripts": {
-                            # TODO: create database for all components
-                            "01-init-airbyte.sql": "CREATE DATABASE airbyte WITH OWNER antares;\n",
-                            "02-init-dagster.sql": "CREATE DATABASE dagster WITH OWNER antares;\n",
-                        },
+                        "scripts": dict(
+                            [
+                                (
+                                    f"init-{c}.sql",
+                                    f'CREATE DATABASE "{c}" WITH OWNER antares;',
+                                )
+                                for c in enabled_components() - {"postgresql"}
+                            ]
+                        )
                     }
                 },
                 "global": {"storageClass": storage_class},

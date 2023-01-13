@@ -1,5 +1,0 @@
-config:
-  antares-idl-k8s:components:
-    airbyte: true
-    postgresql: true
-  antares-idl-k8s:org: starschema

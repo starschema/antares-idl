@@ -129,3 +129,6 @@ dmypy.json
 
 .DS_Store
 *.code-workspace
+deployment/kubernetes/pod.yaml
+deployment/*/Pulumi.dev*.yaml
+deployment/*/Pulumi.prod*.yaml
