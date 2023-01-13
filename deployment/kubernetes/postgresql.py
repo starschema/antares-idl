@@ -37,7 +37,8 @@ def deploy():
     if config["components"]["efs-eks"][:]:
         storage_class = resources["postgresql_storage_class"].metadata["name"]
     else:
-        storage_class = ""
+        # TODO: check without storage class
+        storage_class = config.get("/postgresql/storage-class", "")
 
     postgresql_release = Release(
         "postgresql",

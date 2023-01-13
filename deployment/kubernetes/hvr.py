@@ -32,6 +32,8 @@ from pulumi_kubernetes.core.v1 import (
     Service,
     ServiceSpecArgs,
     ServicePortArgs,
+    PersistentVolumeClaim,
+    PersistentVolumeClaimSpecArgs,
 )
 from antares_common.resources import resources, component_enabled
 from antares_common.config import config
@@ -42,6 +44,8 @@ def deploy():
     app_labels = {"app": "hvr", "app_type": "ingestion"}
 
     hvr_http_port = config.get("/hvr/port", "4340")
+
+    hvr_env = config.get("/hvr/env", [])
 
     if component_enabled("postgresql"):
         hvr_env = [
@@ -66,8 +70,39 @@ def deploy():
             },
         ]
 
-    else:
-        hvr_env = []
+    if config.get("/hvr/admin-password"):
+        hvr_env.append(
+            {"name": "HVR_ADMIN_PASSWORD", "value": config.get("/hvr/admin-password")}
+        )
+
+    if config.get("/hvr/export-file"):
+        hvr_env.append(
+            {"name": "HVR_EXPORT_FILE", "value": config.get("/hvr/export-file")}
+        )
+
+    hvr_env.append(
+        {
+            "name": "HVR_HUB_NAME",
+            "value": config.get("/hvr/hub-description", f"Antares {config.stack}"),
+        }
+    )
+
+    hvr_config_pvc = PersistentVolumeClaim(
+        "hvr-config-pvc",
+        metadata=ObjectMetaArgs(
+            name="hvr-config-pvc",
+            namespace=resources["namespace"].metadata["name"],
+        ),
+        spec=PersistentVolumeClaimSpecArgs(
+            # TODO: take it from config
+            storage_class_name=config.get("/hvr/storage-class", "efs-postgres"),
+            access_modes=["ReadWriteOnce"],
+            resources={"requests": {"storage": config.get("/hvr/config-size", "2G")}},
+        ),
+        opts=pulumi.ResourceOptions(depends_on=[]),
+    )
+
+    resources["hvr_config_pvc"] = hvr_config_pvc
 
     hvr_deployment = Deployment(
         "hvr-deployment",
@@ -90,13 +125,12 @@ def deploy():
                             image=resources["aws_stack_ref"].get_output(
                                 "hvr-full-image-name"
                             ),
-                            # command=["sleep"],
-                            # args=["1000000"],
                             volume_mounts=[
                                 {
                                     "name": "hvr-license",
                                     "mountPath": "/hvr/hvr_home/license",
-                                }
+                                },
+                                {"name": "hvr-config", "mountPath": "/hvr/hvr_config"},
                             ],
                             env=hvr_env,
                         )
@@ -108,12 +142,20 @@ def deploy():
                                 "secretName": "hvr-license",
                                 "items": [{"key": "license", "path": "hvr.lic"}],
                             },
-                        }
+                        },
+                        {
+                            "name": "hvr-config",
+                            "persistentVolumeClaim": {
+                                "claimName": hvr_config_pvc.metadata["name"]
+                            },
+                        },
                     ],
                 ),
             ),
         ),
-        opts=pulumi.ResourceOptions(depends_on=[resources["postgresql"]]),
+        opts=pulumi.ResourceOptions(
+            depends_on=[hvr_config_pvc, resources["postgresql"]]
+        ),
     )
 
     resources["hvr-deployment"] = hvr_deployment
@@ -122,6 +164,7 @@ def deploy():
         "hvr-service",
         metadata=ObjectMetaArgs(
             namespace=resources["namespace"].metadata["name"],
+            name="hvr-hub",
             labels=app_labels,
         ),
         spec=ServiceSpecArgs(

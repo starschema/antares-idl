@@ -1,6 +1,13 @@
 FROM rockylinux:8
 
-RUN yum -y install libpq perl procps
+ARG UNAME=hvrhub
+ARG UID=1001
+ARG GID=1001
+
+RUN groupadd -g $GID -o $UNAME
+RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
+
+RUN yum -y install libpq perl procps nc
 
 ENV HVR_HOME /hvr/hvr_home
 ENV HVR_CONFIG /hvr/hvr_config
@@ -12,7 +19,12 @@ WORKDIR ${HVR_HOME}
 
 COPY hvr*tar.gz .
 RUN tar xvzf hvr*tar.gz
+RUN rm -f $HVR_HOME/lib/libcrypt*
 
 COPY hvr_docker_init.sh .
+
+
+USER $UNAME
+
 
 ENTRYPOINT [ "./hvr_docker_init.sh" ]
