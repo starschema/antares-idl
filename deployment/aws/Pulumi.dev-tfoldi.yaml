@@ -1,6 +1,0 @@
-config:
-  antares-idl-aws:deploy-efs: "true"
-  antares-idl-aws:efs:
-    availability_zone_name: eu-central-1b
-    eks_cluster_name: StarKube
-  aws:region: eu-central-1
