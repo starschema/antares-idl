@@ -134,7 +134,9 @@ dmypy.json
 logs
 kafka_admin_lambda.zip
 *kafka-connector*.zip
+*kafka-connector*.jar
 kafka_admin_lambda
 deployment/kubernetes/pod.yaml
 deployment/*/Pulumi.dev*.yaml
 deployment/*/Pulumi.prod*.yaml
+tmp_downloads

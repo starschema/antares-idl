@@ -2,9 +2,10 @@ import json
 import glob
 import shutil
 import os
+import tempfile
 import pulumi
 import pulumi_aws as aws
-
+import urllib.request as request
 from antares_common.resources import resources
 from antares_common.config import config
 from antares_common import str2bool, read_text_file
@@ -372,13 +373,17 @@ def deploy_kafka_connector(
     snowflake_stack_ref, cluster, security_group, antares_bucket, lambda_invocation
 ):
     """Deploy the Kafka Snowflake plugin and connector."""
-    drivers = sorted(glob.glob("*kafka-connector*.zip"))
+    drivers = sorted(
+        glob.glob("*kafka-connector*.zip") + glob.glob("*kafka-connector*.jar")
+    )
     if len(drivers) == 0:
-        raise Exception(
-            "No driver found. At least one driver that matches the *kafka-connector*.zip pattern is required in this folder. "
-            + "Download the zip from https://www.confluent.io/hub/snowflakeinc/snowflake-kafka-connector and place it in the current folder."
-        )
-    driver = drivers[-1]
+        url = config["/msk/default-snowflake-kafka-connector"][:]
+        driver = config["/msk/default-snowflake-kafka-connector"][:].split("/")[-1]
+        print(f"No driver found, downloading from {url}")
+        request.urlretrieve(url, driver)
+
+    else:
+        driver = drivers[-1]
 
     antares_jar_file = aws.s3.BucketObjectv2(
         "antares-kafka-connector-jar-file",
