@@ -16,11 +16,11 @@ def deploy_msk():
         f"{config.org}/antares-idl-snowflake/{config.stack}"
     )
 
-    vpc_id = config.get("/msk/vpc-id")
+    vpc_id = config.get("/msk/vpc/id")
     kafka_version = config.get("/msk/kafka-version")
     subnets = config.get("/msk/subnets")
     instance_type = config.get("/msk/kafka-instance-type")
-    use_tls_auth = str2bool(config.get("/msk/use-tls-auth"))
+    use_tls_auth = config.get("/msk/use-tls-auth")
 
     private_ca_arn = config.get("/msk/private-ca-arn")
     kafka_username = config.get("/msk/kafka-username")
@@ -52,7 +52,7 @@ def deploy_msk():
     create_topics_invocation = create_topics(
         admin_lambda, antares_kafka_cluster, antares_secret
     )
-    print(create_topics_invocation)
+    # print(create_topics_invocation)
 
     deploy_kafka_connector(
         snowflake_stack_ref,
@@ -166,7 +166,7 @@ def deploy_admin_lambda(cluster, aws_security_group, secret, key):
         memory_size=128,
         vpc_config=aws.lambda_.FunctionVpcConfigArgs(
             subnet_ids=config["/msk/subnets"][:],
-            # vpc_id=config["/msk/vpc-id"][:],
+            # vpc_id=config["/msk/vpc/id"][:],
             security_group_ids=[aws_security_group.id],
         ),
         opts=pulumi.ResourceOptions(
@@ -273,19 +273,22 @@ def create_client_auth_obj(use_tls_auth, private_ca_arn):
 
 def deploy_security_group(vpc_id):
     """Deploy the security group for the MSK cluster."""
-    aws_vpc = aws.ec2.get_vpc_output(id=vpc_id)
+    if config.get("/msk/vpc/cidr-block"):
+        cidr_block = config.get("/msk/vpc/cidr-block")
+    else:
+        cidr_block = aws.ec2.get_vpc_output(id=vpc_id).apply(lambda vpc: vpc.cidr_block)
 
     aws_security_group = aws.ec2.SecurityGroup(
         "antares-kafka-sg",
         description="Allow Kafka inbound traffic from the VPC",
-        vpc_id=aws_vpc.id,
+        vpc_id=vpc_id,
         ingress=[
             aws.ec2.SecurityGroupIngressArgs(
                 description="Zookeeper connection from VPC",
                 from_port=2181,
                 to_port=2182,
                 protocol="tcp",
-                cidr_blocks=[aws_vpc.cidr_block],
+                cidr_blocks=[cidr_block],
                 # ipv6_cidr_blocks=[aws_vpc.ipv6_cidr_block],
             ),
             aws.ec2.SecurityGroupIngressArgs(
@@ -293,7 +296,7 @@ def deploy_security_group(vpc_id):
                 from_port=9092,
                 to_port=9098,
                 protocol="tcp",
-                cidr_blocks=[aws_vpc.cidr_block],
+                cidr_blocks=[cidr_block],
                 # ipv6_cidr_blocks=[aws_vpc.ipv6_cidr_block],
             ),
         ],
@@ -440,8 +443,8 @@ def deploy_kafka_connector(
     connector_config["snowflake.topic2table.map"] = ",".join(
         map(lambda topic: f"{topic['name']}:{topic['name']}", topics)
     )
-    print("topics", connector_config["topics"])
-    print("snowflake.topic2table.map", connector_config["snowflake.topic2table.map"])
+    # print("topics", connector_config["topics"])
+    # print("snowflake.topic2table.map", connector_config["snowflake.topic2table.map"])
 
     connector = aws.mskconnect.Connector(
         "antares-connector",
