@@ -27,23 +27,12 @@ import os
 import sys
 import inspect
 import pulumi
-import pulumi_aws as aws
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
 
-import efs_eks
-import ecr
-from antares_common.resources import resources, component_enabled
+from antares_common.resources import component_enabled
+import aks
 
-
-aws_account_id = aws.get_caller_identity().account_id
-pulumi.export("aws_account_id", aws_account_id)
-resources["aws_account_id"] = aws_account_id
-
-
-if component_enabled("efs-eks"):
-    efs_eks.deploy()
-
-if component_enabled("ecr"):
-    ecr.deploy()
+if component_enabled("aks"):
+    aks.deploy()

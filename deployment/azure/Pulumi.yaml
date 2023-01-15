@@ -1,0 +1,9 @@
+name: antares-idl-azure
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Antares components for Azure cloud
+
+config:
+    antares-idl-azure:components.aks: true

@@ -33,3 +33,11 @@ def component_enabled(component_name):
 
 def enabled_components():
     return {key for key, value in config.get("/components").items() if value}
+
+
+def aws_k8s_public_annotations():
+    return {
+        "service.beta.kubernetes.io/aws-load-balancer-type": "external",
+        "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type": "ip",
+        "service.beta.kubernetes.io/aws-load-balancer-scheme": "internet-facing",
+    }
