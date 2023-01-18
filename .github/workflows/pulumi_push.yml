@@ -19,7 +19,18 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Set up kubectl
-        run: aws eks update-kubeconfig --region eu-central-1 --name StarKube          
+        run: aws eks update-kubeconfig --region eu-central-1 --name StarKube     
+      - name: Pulumi Snowflake 
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: starschema/github-actions
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: deployment/snowflake
+          upsert: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}           
       - name: Pulumi AWS 
         uses: pulumi/actions@v3
         with:

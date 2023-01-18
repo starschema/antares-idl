@@ -7,6 +7,8 @@ runtime:
 config:
     antares-idl-aws:components.efs-eks: true
     antares-idl-aws:components.ecr: true
+    antares-idl-aws:components.msk: true
 
+    antares-idl-aws:config.msk.default-snowflake-kafka-connector: "https://repo1.maven.org/maven2/com/snowflake/snowflake-kafka-connector/1.8.2/snowflake-kafka-connector-1.8.2.jar"
     antares-idl-aws:config.ecr.containers[0].name: hvr
     antares-idl-aws:config.ecr.containers[0].tag: tfoldi/hvr
