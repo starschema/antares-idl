@@ -5,6 +5,7 @@ import os
 import tempfile
 import pulumi
 import pulumi_aws as aws
+import pulumi_random as random
 import urllib.request as request
 from antares_common.resources import resources
 from antares_common.config import config
@@ -25,13 +26,41 @@ def deploy_msk():
 
     private_ca_arn = config.get("/msk/private-ca-arn")
     kafka_username = config.get("/msk/kafka-username")
-    kafka_password = pulumi.Output.secret(config.get("/msk/kafka-password"))
+    kafka_password = random.RandomPassword("password", length=16, special=True)
 
     aws_security_group = deploy_security_group(vpc_id)
 
     client_authentication = create_client_auth_obj(use_tls_auth, private_ca_arn)
 
-    antares_bucket = aws.s3.BucketV2("antares-bucket")
+    antares_bucket = aws.s3.BucketV2(
+        "antares-bucket",
+        force_destroy=config.get("/msk/s3/force-destroy-bucket", False),
+    )
+
+    # aws.s3.BucketLifecycleConfigurationV2(
+    #     "antares-bucket-storage-transitions",
+    #     bucket=antares_bucket.id,
+    #     rules=[
+    #         aws.s3.BucketLifecycleConfigurationV2RuleArgs(
+    #             id="rule-1",
+    #             filter=aws.s3.BucketLifecycleConfigurationV2RuleFilterArgs(
+    #                 prefix="logs/"
+    #             ),
+    #             status="Enabled",
+    #             transitions=[
+    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
+    #                     days=1, storage_class="STANDARD_IA"
+    #                 ),
+    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
+    #                     days=15, storage_class="GLACIER_IR"
+    #                 ),
+    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
+    #                     days=60, storage_class="DEEP_ARCHIVE"
+    #                 ),
+    #             ],
+    #         )
+    #     ],
+    # )
 
     antares_kafka_cluster = deploy_msk_cluster(
         kafka_version,
@@ -63,7 +92,7 @@ def deploy_msk():
         create_topics_invocation,
     )
 
-    exports(use_tls_auth, antares_kafka_cluster)
+    exports(use_tls_auth, antares_kafka_cluster, kafka_username, kafka_password)
 
 
 def create_topics(admin_lambda, antares_kafka_cluster, antares_secret):
@@ -180,7 +209,7 @@ def deploy_admin_lambda(cluster, aws_security_group, secret, key):
     return admin_lambda
 
 
-def exports(use_tls_auth, antares_kafka_cluster):
+def exports(use_tls_auth, antares_kafka_cluster, kafka_username, kafka_password):
     """Export the Kafka cluster connection strings."""
     pulumi.export(
         "zookeeperConnectString", antares_kafka_cluster.zookeeper_connect_string
@@ -198,6 +227,8 @@ def exports(use_tls_auth, antares_kafka_cluster):
         if use_tls_auth
         else antares_kafka_cluster.bootstrap_brokers_sasl_scram,
     )
+    pulumi.export("kafkaUsername", kafka_username)
+    pulumi.export("kafkaPassword", kafka_password.result)
 
 
 def deploy_msk_cluster(
@@ -249,7 +280,7 @@ def deploy_msk_cluster(
             "Name": "antares-kafka",
         },
         opts=pulumi.ResourceOptions(
-            custom_timeouts=pulumi.CustomTimeouts(create="45m")
+            custom_timeouts=pulumi.CustomTimeouts(create="60m")
         ),
     )
 
@@ -330,14 +361,12 @@ def deploy_username_password_auth(
     antares_secret = aws.secretsmanager.Secret(
         "AmazonMSK_antares-secret", kms_key_id=antarest_key.key_id
     )
-    antares_secret_version = kafka_password.apply(
-        lambda decoded_kafka_password: aws.secretsmanager.SecretVersion(
-            "AmazonMSK_antares_secret_1",
-            secret_id=antares_secret.id,
-            secret_string=json.dumps(
-                {"username": kafka_username, "password": decoded_kafka_password}
-            ),
-        )
+    aws.secretsmanager.SecretVersion(
+        "AmazonMSK_antares_secret_1",
+        secret_id=antares_secret.id,
+        secret_string=kafka_password.result.apply(
+            lambda pw: json.dumps({"username": kafka_username, "password": pw})
+        ),
     )
 
     aws.msk.ScramSecretAssociation(
@@ -502,7 +531,7 @@ def deploy_kafka_connector(
             )
         ),
         opts=pulumi.ResourceOptions(
-            custom_timeouts=pulumi.CustomTimeouts(create="45m"),
+            custom_timeouts=pulumi.CustomTimeouts(create="60m"),
             depends_on=[
                 lambda_invocation,
             ],

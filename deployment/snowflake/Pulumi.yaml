@@ -5,4 +5,4 @@ runtime:
     virtualenv: venv
 description: Antares Snowflake Db deployment for MSK/Kafka ingestion
 config:
-    antares-idl-snowflake:components.snowflake: true
+    antares-idl-snowflake:components.msk-snowflake: True
