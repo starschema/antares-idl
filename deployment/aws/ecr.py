@@ -41,7 +41,7 @@ def get_registry_info(rid):
     )
 
 
-def deploy_ecr():
+def deploy():
     ecr_repostiroy = aws.ecr.Repository(
         config.get("/ecr/repository-name", "antares-ecr"),
         image_scanning_configuration=aws.ecr.RepositoryImageScanningConfigurationArgs(

@@ -26,12 +26,8 @@ import os
 import sys
 import inspect
 import pulumi
-from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
-from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpecArgs
-from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from pulumi_kubernetes.core.v1 import Namespace, Service
-from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import Namespace
 
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -62,7 +58,7 @@ pulumi.export("namespace", resources["namespace"].metadata["name"])
 # if we are in the cloud, then let's load the cloud stack stack ref's
 if config.get("/cloud/type"):
     resources[f"{config.cloud.type}_stack_ref"] = pulumi.StackReference(
-        f"{config.org}/antares-idl-{config.cloud.type}/{config.stack}"
+        f"{config.org}/antares-idl-{config.cloud.type}/{config.get('/cloud/upstream-stack',config.stack)}"
     )
 
 if config.get("secrets"):

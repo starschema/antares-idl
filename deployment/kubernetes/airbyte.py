@@ -89,7 +89,7 @@ def deploy():
         ),
         spec=PersistentVolumeClaimSpecArgs(
             # TODO: take it from config
-            storage_class_name="efs-sc",
+            storage_class_name=config.get("/airbyte/storage-class", "efs-sc"),
             access_modes=["ReadWriteOnce"],
             resources={"requests": {"storage": "20M"}},
         ),
@@ -135,6 +135,18 @@ def deploy():
                 ],
                 init_containers=[
                     ContainerArgs(
+                        name="delete-git-root",
+                        image="busybox",
+                        args=[
+                            "sh",
+                            "-c",
+                            "rm -rf /home/octavia-project/* ; chown -R 65533:65533 /home/octavia-project/; true",
+                        ],
+                        volume_mounts=[
+                            {"name": "workdir", "mountPath": "/home/octavia-project"}
+                        ],
+                    ),
+                    ContainerArgs(
                         name="airbyte-git-sync",
                         image="k8s.gcr.io/git-sync/git-sync:v3.6.2",
                         image_pull_policy="IfNotPresent",
@@ -156,7 +168,7 @@ def deploy():
                         ],
                         # TODO: env from config
                         env_from=[{"secretRef": {"name": "database-credentials"}}],
-                    )
+                    ),
                 ],
             ),
             opts=pulumi.ResourceOptions(depends_on=[airbyte_release, airbyte_repo_pvc]),
