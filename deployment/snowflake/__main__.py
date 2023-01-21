@@ -27,27 +27,12 @@ import os
 import sys
 import inspect
 import pulumi
-import pulumi_aws as aws
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
 
-import efs_eks
-import msk
-import ecr
+import msk_snowflake as msk
 from antares_common.resources import resources, component_enabled
 
-
-aws_account_id = aws.get_caller_identity().account_id
-pulumi.export("aws_account_id", aws_account_id)
-resources["aws_account_id"] = aws_account_id
-
-
-if component_enabled("efs-eks"):
-    efs_eks.deploy()
-
-if component_enabled("msk"):
-    msk.deploy_msk()
-
-if component_enabled("ecr"):
-    ecr.deploy()
+if component_enabled("msk-snowflake"):
+    msk.deploy_msk_snowflake()
