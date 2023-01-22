@@ -26,14 +26,10 @@ import base64
 import pulumi
 from pulumi import ResourceOptions
 from pulumi_azure_native import (
-    resources as azresources,
     containerservice,
-    network,
     authorization,
 )
 import pulumi_azuread as azuread
-
-# import pulumi_random as random
 
 from antares_common.resources import resources
 from antares_common.config import config
@@ -61,43 +57,20 @@ def deploy():
         end_date="2099-01-01T00:00:00Z",
     )
 
-    rg = azresources.ResourceGroup(
-        f"{prefix}-rg", location=config.get("/aks/location", "westeurope")
-    )
-
-    resources["rg"] = rg
-    pulumi.export("aks-resource-group", rg.name)
-
-    vnet = network.VirtualNetwork(
-        f"{prefix}-vnet",
-        location=rg.location,
-        resource_group_name=rg.name,
-        address_space={
-            "address_prefixes": ["10.0.0.0/16"],
-        },
-    )
-
-    subnet = network.Subnet(
-        f"{prefix}-subnet",
-        resource_group_name=rg.name,
-        address_prefix="10.0.0.0/24",
-        virtual_network_name=vnet.name,
-    )
-
     subnet_assignment = authorization.RoleAssignment(
-        "subnet-permissions",
+        "aks-subnet-permissions",
         principal_id=sp.id,
         principal_type=authorization.PrincipalType.SERVICE_PRINCIPAL,
         role_definition_id=f"/subscriptions/{subscription_id}/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7",  # ID for Network Contributor role
-        scope=subnet.id,
+        scope=resources["subnet"].id,
     )
 
     # Create the AKS cluster
     # TODO: use custom config for the cluster
     aks = containerservice.ManagedCluster(
         f"{prefix}-aks",
-        location=rg.location,
-        resource_group_name=rg.name,
+        location=resources["resource-group"].location,
+        resource_group_name=resources["resource-group"].name,
         dns_prefix="dns",
         agent_pool_profiles=[
             {
@@ -107,7 +80,7 @@ def deploy():
                 "vm_size": "Standard_B2ms",
                 "os_type": containerservice.OSType.LINUX,
                 "max_pods": 110,
-                "vnet_subnet_id": subnet.id,
+                "vnet_subnet_id": resources["subnet"].id,
             }
         ],
         linux_profile={
@@ -133,7 +106,7 @@ def deploy():
         **(config.get("/aks/cluster/managed-cluster-args", {})),
     )
 
-    kube_creds = pulumi.Output.all(rg.name, aks.name).apply(
+    kube_creds = pulumi.Output.all(resources["resource-group"].name, aks.name).apply(
         lambda args: containerservice.list_managed_cluster_user_credentials(
             resource_group_name=args[0], resource_name=args[1]
         )
