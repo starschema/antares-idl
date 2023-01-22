@@ -22,20 +22,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
-import os
-import sys
-import inspect
 import pulumi
+from pulumi import Config as PulumiConfig
+from pulumi_azure_native import (
+    resources as azresources,
+    network,
+)
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-sys.path.insert(0, f"{currentdir}/../../lib")
+from antares_common.resources import resources
+from antares_common.config import config
 
-from antares_common.resources import component_enabled
-import aks
-import resource_group
 
-resource_group.deploy()
+def deploy():
+    prefix = f"antares-{config.stack}"
+    azure_native_config = PulumiConfig("azure-native")
 
-if component_enabled("aks"):
-    aks.deploy()
+    resource_group = azresources.ResourceGroup(
+        f"{prefix}-rg",
+        location=config.get("location", azure_native_config.require("location")),
+    )
+
+    resources["resource-group"] = resource_group
+    pulumi.export("resource-group-name", resource_group.name)
+
+    vnet = network.VirtualNetwork(
+        f"{prefix}-vnet",
+        location=resource_group.location,
+        resource_group_name=resource_group.name,
+        address_space={
+            "address_prefixes": ["10.0.0.0/16"],
+        },
+    )
+
+    subnet = network.Subnet(
+        f"{prefix}-subnet",
+        resource_group_name=resource_group.name,
+        address_prefix="10.0.0.0/24",
+        virtual_network_name=vnet.name,
+    )
+
+    resources["vnet"] = vnet
+    resources["subnet"] = subnet
