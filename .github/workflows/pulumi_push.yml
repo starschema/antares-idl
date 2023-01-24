@@ -12,6 +12,10 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      - name: Configure Azure Credentials
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
