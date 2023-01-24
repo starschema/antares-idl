@@ -46,9 +46,11 @@ def deploy():
 
     # Create Azure AD Application for AKS
     app = azuread.Application(f"{prefix}-aks-app", display_name=f"{prefix}-aks-app")
+    resources["aks-app"] = app
 
     # Create service principal for the application so AKS can act on behalf of the application
     sp = azuread.ServicePrincipal("aks-sp", application_id=app.application_id)
+    resources["aks-sp"] = sp
 
     # Create the service principal password
     sppwd = azuread.ServicePrincipalPassword(

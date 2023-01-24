@@ -33,9 +33,13 @@ sys.path.insert(0, f"{currentdir}/../../lib")
 
 from antares_common.resources import component_enabled
 import aks
+import acr
 import resource_group
 
 resource_group.deploy()
 
 if component_enabled("aks"):
     aks.deploy()
+
+if component_enabled("acr"):
+    acr.deploy()

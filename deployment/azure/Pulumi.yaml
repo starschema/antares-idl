@@ -7,3 +7,6 @@ description: Antares components for Azure cloud
 
 config:
     antares-idl-azure:components.aks: true
+    antares-idl-azure:components.acr: true
+    antares-idl-azure:config.ecr.containers[0].name: hvr
+    antares-idl-azure:config.ecr.containers[0].tag: tfoldi/hvr
