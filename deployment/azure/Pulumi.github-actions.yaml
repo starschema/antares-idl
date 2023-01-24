@@ -1,0 +1,5 @@
+config:
+  antares-idl-azure:config:
+    aks:
+      ssh-key: ssh-rsa foo bar
+  azure-native:location: westeurope
