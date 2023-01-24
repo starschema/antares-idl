@@ -29,7 +29,7 @@ from antares_common.resources import resources
 from antares_common.config import config
 
 
-def deploy_efs():
+def deploy():
 
     # First of all get the necessary information about the EKS cluster
     eks_cluster = aws.eks.Cluster.get(

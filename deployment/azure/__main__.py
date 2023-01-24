@@ -22,63 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
 import os
 import sys
 import inspect
 import pulumi
-from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import Namespace
-
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
 
-from antares_common.resources import resources, component_enabled
-from antares_common.config import config
-import secrets
-import config_maps
-import efs_eks
-import dagster
-import airbyte
-import hvr
-import postgresql
+from antares_common.resources import component_enabled
+import aks
+import acr
+import resource_group
 
+resource_group.deploy()
 
-# Create namespace for components
-resources["namespace"] = Namespace(
-    "antares",
-    metadata=ObjectMetaArgs(
-        name=f"antares-{config.stack}",
-        labels={**config.get("labels", {})},
-    ),
-)
-pulumi.export("namespace", resources["namespace"].metadata["name"])
+if component_enabled("aks"):
+    aks.deploy()
 
-
-# if we are in the cloud, then let's load the cloud stack stack ref's
-if config.get("/cloud/type"):
-    resources[f"{config.cloud.type}_stack_ref"] = pulumi.StackReference(
-        f"{config.org}/antares-idl-{config.cloud.type}/{config.get('/cloud/upstream-stack',config.stack)}"
-    )
-
-if config.get("secrets"):
-    secrets.deploy()
-
-if config.get("config_maps"):
-    config_maps.deploy()
-
-
-if component_enabled("efs-eks"):
-    efs_eks.deploy()
-
-if component_enabled("postgresql"):
-    postgresql.deploy()
-
-if component_enabled("airbyte"):
-    airbyte.deploy()
-
-if component_enabled("hvr"):
-    hvr.deploy()
-
-if component_enabled("dagster"):
-    dagster.deploy()
+if component_enabled("acr"):
+    acr.deploy()

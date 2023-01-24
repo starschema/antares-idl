@@ -68,7 +68,7 @@ def deploy():
                         )
                     }
                 },
-                "global": {"storageClass": storage_class},
+                "global": ({"storageClass": storage_class} if storage_class else {}),
                 **(config.get("/postgresql/helm-values", {})),
             },
         ),
