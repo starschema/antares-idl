@@ -26,7 +26,6 @@ SOFTWARE.
 import os
 import sys
 import inspect
-import pulumi
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0, f"{currentdir}/../../lib")
@@ -34,6 +33,7 @@ sys.path.insert(0, f"{currentdir}/../../lib")
 from antares_common.resources import component_enabled
 import aks
 import acr
+import kafka
 import resource_group
 
 resource_group.deploy()
@@ -43,3 +43,6 @@ if component_enabled("aks"):
 
 if component_enabled("acr"):
     acr.deploy()
+
+if component_enabled("kafka"):
+    kafka.deploy()
