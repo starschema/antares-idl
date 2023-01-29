@@ -42,7 +42,8 @@ import dagster
 import airbyte
 import hvr
 import postgresql
-
+import emqx
+import cert_manager
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -71,6 +72,9 @@ if config.get("config_maps"):
 if component_enabled("efs-eks"):
     efs_eks.deploy()
 
+if component_enabled("cert-manager"):
+    cert_manager.deploy()
+
 if component_enabled("postgresql"):
     postgresql.deploy()
 
@@ -82,3 +86,6 @@ if component_enabled("hvr"):
 
 if component_enabled("dagster"):
     dagster.deploy()
+
+if component_enabled("emqx"):
+    emqx.deploy()
