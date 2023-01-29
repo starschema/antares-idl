@@ -34,7 +34,7 @@ from antares_common.config import config
 def deploy():
 
     if config["components"]["efs-eks"][:]:
-        storage_class = resources["storage_class"].metadata["name"]
+        storage_class = resources["efs_storage_class"].metadata["name"]
     else:
         # TODO: check without storage class
         storage_class = config.get("/emqx/storage-class", "")
