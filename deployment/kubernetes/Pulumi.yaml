@@ -10,3 +10,5 @@ config:
     antares-idl-k8s:components.dagster: true
     antares-idl-k8s:components.efs-eks: false
     antares-idl-k8s:components.hvr: true
+    antares-idl-k8s:components.cert-manager: true
+    antares-idl-k8s:components.emqx: true

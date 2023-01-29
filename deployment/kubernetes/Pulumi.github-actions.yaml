@@ -5,6 +5,8 @@ config:
     efs-eks: true
     hvr: false
     postgresql: true
+    emqx: true
+    cert-manager: true
   antares-idl-k8s:config:
     cloud:
       type: aws
