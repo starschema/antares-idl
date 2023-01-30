@@ -42,30 +42,28 @@ def get_registry_info(rid):
 
 
 def deploy():
-    ecr_repostiroy = aws.ecr.Repository(
-        config.get("/ecr/repository-name", "antares-ecr"),
-        image_scanning_configuration=aws.ecr.RepositoryImageScanningConfigurationArgs(
-            scan_on_push=False,
-        ),
-        image_tag_mutability="MUTABLE",
-        force_delete=True,
-    )
-
-    pulumi.export("ecr-repository-url", ecr_repostiroy.repository_url)
-
-    resources["ecr_repository"] = ecr_repostiroy
 
     for container in config.get("/ecr/containers", []):
+
+        ecr_repository = aws.ecr.Repository(
+            f"antares-ecr-{container['name']}",
+            image_scanning_configuration=aws.ecr.RepositoryImageScanningConfigurationArgs(
+                scan_on_push=False,
+            ),
+            image_tag_mutability="MUTABLE",
+            force_delete=True,
+        )
+
         image = docker.Image(
-            "hvr-docker-image",
+            f"{container['name']}-docker-image",
             build=docker.DockerBuild(
                 context=f"../../containers/{container['name']}",
                 extra_options=["--platform", "linux/amd64"],
             ),
-            # TODO: use more human readable names in ECR
-            image_name=ecr_repostiroy.repository_url,
+            image_name=ecr_repository.repository_url,
             local_image_name=container["tag"],
-            registry=ecr_repostiroy.registry_id.apply(get_registry_info),
+            registry=ecr_repository.registry_id.apply(get_registry_info),
+            opts=pulumi.ResourceOptions(depends_on=[ecr_repository]),
         )
 
         # Export the base and specific version image name.

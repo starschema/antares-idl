@@ -12,3 +12,5 @@ config:
     antares-idl-aws:config.msk.default-snowflake-kafka-connector: "https://repo1.maven.org/maven2/com/snowflake/snowflake-kafka-connector/1.8.2/snowflake-kafka-connector-1.8.2.jar"
     antares-idl-aws:config.ecr.containers[0].name: hvr
     antares-idl-aws:config.ecr.containers[0].tag: tfoldi/hvr
+    antares-idl-aws:config.ecr.containers[1].name: growatt
+    antares-idl-aws:config.ecr.containers[1].tag: tfoldi/growatt
