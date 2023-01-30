@@ -81,22 +81,27 @@ def deploy():
         password=creds.password,
     )
 
+    image_name = {}
+
     # Publish all the images to the registry.
     for container in config.get("/ecr/containers", []):
-        image_name = acr_registry.login_server.apply(
+        image_name[container["name"]] = acr_registry.login_server.apply(
             lambda s: f'{s}/{container["name"]}'
+        )
+        pulumi.export(
+            f"{container['name']}-local-img-name", image_name[container["name"]]
         )
 
         image = docker.Image(
-            "hvr-docker-image",
+            f"{container['name']}-docker-image",
             build=docker.DockerBuild(
                 context=f"../../containers/{container['name']}",
                 extra_options=["--platform", "linux/amd64"],
             ),
-            # TODO: use more human readable names in ECR
-            image_name=image_name,
+            image_name=image_name[container["name"]],
             local_image_name=container["tag"],
             registry=registry_info,
+            opts=pulumi.ResourceOptions(depends_on=[acr_registry]),
         )
 
         # Export the base and specific version image name.
