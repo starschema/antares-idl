@@ -1,0 +1,20 @@
+{
+  "name": "growatt-sparkplug",
+  "version": "1.0.0",
+  "description": "MQTT/Bparkplug data collector for Growatt inverters",
+  "author": "Tamas Foldi <tamas.foldi@hcl.com>",
+  "main": "growatt.js",
+  "scripts": {
+    "start": "node growatt.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "flat": "^5.0.2",
+    "glob-parent": "^6.0.2",
+    "glob-stream": "^7.0.0",
+    "growatt": "github:PLCHome/growatt",
+    "lodash": "^4.17.21",
+    "node-cron": "^3.0.2",
+    "sparkplug-client": "^3.2.2"
+  }
+}
