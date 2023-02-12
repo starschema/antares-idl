@@ -94,7 +94,6 @@ def deploy():
 
     # Publish all the images to the registry.
     for container in os.listdir("../../containers"):
-
         print("container: ", container)
         image_name = f"{acr_name}.azurecr.io/{container}:latest"
         print(image_name)

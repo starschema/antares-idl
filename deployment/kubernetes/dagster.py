@@ -29,7 +29,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     if config["components"]["postgresql"][:]:
         dagster_helm_values = {
             "postgresql": {

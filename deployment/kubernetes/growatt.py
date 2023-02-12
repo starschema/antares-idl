@@ -36,7 +36,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     app_labels = {"app": "growatt", "app_type": "ingestion"}
 
     if component_enabled("emqx"):

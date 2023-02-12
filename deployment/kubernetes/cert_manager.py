@@ -27,7 +27,6 @@ from antares_common.resources import resources
 
 
 def deploy():
-
     cert_manager_release = Release(
         "cert-manager",
         ReleaseArgs(

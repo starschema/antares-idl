@@ -40,7 +40,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     app_labels = {"app": "hvr", "app_type": "ingestion"}
 
     hvr_http_port = config.get("/hvr/port", "4340")
