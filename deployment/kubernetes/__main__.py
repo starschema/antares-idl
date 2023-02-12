@@ -45,6 +45,7 @@ import postgresql
 import emqx
 import cert_manager
 import growatt
+import monitoring
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -75,6 +76,9 @@ if component_enabled("efs-eks"):
 
 if component_enabled("cert-manager"):
     cert_manager.deploy()
+
+if component_enabled("monitoring"):
+    monitoring.deploy()
 
 if component_enabled("postgresql"):
     postgresql.deploy()
