@@ -42,7 +42,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     if component_enabled("postgresql"):
         airbyte_helm_values = {
             "global": {

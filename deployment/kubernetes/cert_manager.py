@@ -23,12 +23,10 @@ SOFTWARE.
 """
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from antares_common.resources import resources, enabled_components
-from antares_common.config import config
+from antares_common.resources import resources
 
 
 def deploy():
-
     cert_manager_release = Release(
         "cert-manager",
         ReleaseArgs(

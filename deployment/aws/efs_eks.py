@@ -30,7 +30,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     # First of all get the necessary information about the EKS cluster
     eks_cluster = aws.eks.Cluster.get(
         "eks-cluster",

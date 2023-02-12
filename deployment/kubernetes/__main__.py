@@ -44,6 +44,7 @@ import hvr
 import postgresql
 import emqx
 import cert_manager
+import growatt
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -89,3 +90,6 @@ if component_enabled("dagster"):
 
 if component_enabled("emqx"):
     emqx.deploy()
+
+if component_enabled("growatt"):
+    growatt.deploy()
