@@ -1,19 +1,30 @@
 config:
+  aws:region: &aws_region eu-central-1
   antares-idl-aws:components:
     efs-eks: false
   antares-idl-aws:config:
     efs-eks:
       eks_cluster_name: cluster
     msk:
-      connector-config:
-        buffer.count.records: 1000
-        buffer.flush.time: 30
-        buffer.size.bytes: 5000000
-        connector.class: com.snowflake.kafka.connector.SnowflakeSinkConnector
-        key.converter: org.apache.kafka.connect.storage.StringConverter
-        tasks.max: 1
-        topic.creation.enable: true
-        value.converter: com.snowflake.kafka.connector.records.SnowflakeJsonConverter
+      snowflake-connector:
+        connector-config:
+          buffer.count.records: 1000
+          buffer.flush.time: 30
+          buffer.size.bytes: 5000000
+          connector.class: com.snowflake.kafka.connector.SnowflakeSinkConnector
+          key.converter: org.apache.kafka.connect.storage.StringConverter
+          tasks.max: 1
+          topic.creation.enable: true
+          value.converter: com.snowflake.kafka.connector.records.SnowflakeJsonConverter
+      s3-connector:
+        connector-config:
+          connector.class: io.confluent.connect.s3.S3SinkConnector
+          storage.class: io.confluent.connect.s3.storage.S3Storage
+          format.class: io.confluent.connect.s3.format.json.JsonFormat
+          tasks.max: 1
+          flush.size: 2
+          rotate.interval.ms: 10000
+          s3.region: *aws_region
       kafka-instance-type: kafka.t3.small
       kafka-username: x
       kafka-version: 2.8.1
@@ -34,4 +45,4 @@ config:
         id: vpc-1
         cidr-block: 192.0.2.0/24
   antares-idl-aws:org: starschema
-  aws:region: eu-central-1
+  
