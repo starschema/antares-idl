@@ -51,15 +51,17 @@ def deploy_msk_snowflake_connector(
     connector_config["snowflake.url.name"] = snowflake_stack_ref.get_output(
         "snowflake-url"
     )
-    connector_config["snowflake.user.name"] = snowflake_stack_ref.get_output("username")
+    connector_config["snowflake.user.name"] = snowflake_stack_ref.get_output(
+        "username-kafka"
+    )
     connector_config["snowflake.schema.name"] = snowflake_stack_ref.get_output(
-        "antares-schema"
+        "antares-schema-kafka"
     )
     connector_config["snowflake.database.name"] = snowflake_stack_ref.get_output(
         "antares-database"
     )
     connector_config["snowflake.private.key"] = snowflake_stack_ref.get_output(
-        "private-key-no-headers"
+        "private-key-no-headers-kafka"
     )
 
     def create_role(args):
