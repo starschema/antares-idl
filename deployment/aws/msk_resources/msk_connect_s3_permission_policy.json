@@ -1,0 +1,65 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "$$bucket-arn$$",
+                "$$bucket-arn$$"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*Object",
+            "Resource": [
+                "$$landing-bucket-arn$$/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:Connect",
+                "kafka-cluster:DescribeCluster"
+            ],
+            "Resource": [
+                "$$cluster-arn$$"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:ReadData",
+                "kafka-cluster:DescribeTopic"
+            ],
+            "Resource": [
+                "arn:aws:kafka:$$region$$:$$account-id$$:topic/$$cluster-name$$/$$cluster-uuid$$/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:CreateTopic",
+                "kafka-cluster:WriteData",
+                "kafka-cluster:ReadData",
+                "kafka-cluster:DescribeTopic"
+            ],
+            "Resource": [
+                "arn:aws:kafka:$$region$$:$$account-id$$:topic/$$cluster-name$$/$$cluster-uuid$$/__amazon_msk_connect_*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:AlterGroup",
+                "kafka-cluster:DescribeGroup"
+            ],
+            "Resource": [
+                "arn:aws:kafka:$$region$$:$$account-id$$:group/$$cluster-name$$/$$cluster-uuid$$/__amazon_msk_connect_*",
+                "arn:aws:kafka:$$region$$:$$account-id$$:group/$$cluster-name$$/$$cluster-uuid$$/connect-*"
+            ]
+        }
+    ]
+}

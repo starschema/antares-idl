@@ -133,8 +133,8 @@ dmypy.json
 .vscode/*
 logs
 kafka_admin_lambda.zip
-*kafka-connector*.zip
-*kafka-connector*.jar
+*kafka-connect*.zip
+*kafka-connect*.jar
 kafka_admin_lambda
 deployment/kubernetes/pod.yaml
 deployment/*/Pulumi.dev*.yaml

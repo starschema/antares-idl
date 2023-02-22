@@ -54,6 +54,8 @@ def create_topic(event, context):
                 "message": "Hello Antares",
                 "time": now,
             }
+            print("Sending test message to " + topic["name"])
+            print(f"Message:\n{str(data)}\n")
             producer.send(topic["name"], value=data)
 
     return ret

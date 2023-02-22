@@ -14,9 +14,6 @@ from antares_common import str2bool, read_text_file
 
 def deploy_msk():
     """Deploy the MSK cluster."""
-    snowflake_stack_ref = pulumi.StackReference(
-        f"{config.org}/antares-idl-snowflake/{config.stack}"
-    )
 
     vpc_id = config.get("/msk/vpc/id")
     kafka_version = config.get("/msk/kafka-version")
@@ -36,31 +33,6 @@ def deploy_msk():
         "antares-bucket",
         force_destroy=config.get("/msk/s3/force-destroy-bucket", False),
     )
-
-    # aws.s3.BucketLifecycleConfigurationV2(
-    #     "antares-bucket-storage-transitions",
-    #     bucket=antares_bucket.id,
-    #     rules=[
-    #         aws.s3.BucketLifecycleConfigurationV2RuleArgs(
-    #             id="rule-1",
-    #             filter=aws.s3.BucketLifecycleConfigurationV2RuleFilterArgs(
-    #                 prefix="logs/"
-    #             ),
-    #             status="Enabled",
-    #             transitions=[
-    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
-    #                     days=1, storage_class="STANDARD_IA"
-    #                 ),
-    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
-    #                     days=15, storage_class="GLACIER_IR"
-    #                 ),
-    #                 aws.s3.BucketLifecycleConfigurationV2RuleTransitionArgs(
-    #                     days=60, storage_class="DEEP_ARCHIVE"
-    #                 ),
-    #             ],
-    #         )
-    #     ],
-    # )
 
     antares_kafka_cluster = deploy_msk_cluster(
         kafka_version,
@@ -84,15 +56,17 @@ def deploy_msk():
     )
     # print(create_topics_invocation)
 
-    deploy_kafka_connector(
-        snowflake_stack_ref,
-        antares_kafka_cluster,
-        aws_security_group,
-        antares_bucket,
-        create_topics_invocation,
-    )
+    # deploy_kafka_connector(
+    #     snowflake_stack_ref,
+    #     antares_kafka_cluster,
+    #     aws_security_group,
+    #     antares_bucket,
+    #     create_topics_invocation,
+    # )
 
     exports(use_tls_auth, antares_kafka_cluster, kafka_username, kafka_password)
+
+    return antares_kafka_cluster, antares_bucket, aws_security_group
 
 
 def create_topics(admin_lambda, antares_kafka_cluster, antares_secret):
@@ -120,7 +94,7 @@ def create_topics(admin_lambda, antares_kafka_cluster, antares_secret):
 
 
 def create_service_execution_role(
-    role_resorce_id,
+    role_resource_id,
     permission_resource_id,
     assume_role_policy_file,
     permission_policy_file,
@@ -136,7 +110,7 @@ def create_service_execution_role(
         return new_permissions_policy
 
     return aws.iam.Role(
-        role_resorce_id,
+        role_resource_id,
         assume_role_policy=assume_role_policy,
         inline_policies=[
             aws.iam.RoleInlinePolicyArgs(
