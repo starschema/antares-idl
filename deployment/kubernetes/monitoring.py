@@ -22,25 +22,46 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import pulumi
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from antares_common.resources import resources
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import Namespace
+
+from antares_common.resources import resources, component_enabled
+from antares_common.config import config
 
 
 def deploy():
-    cert_manager_release = Release(
-        "cert-manager",
-        ReleaseArgs(
-            chart="cert-manager",
-            name="cert-manager",
-            repository_opts=RepositoryOptsArgs(
-                repo="https://charts.jetstack.io/",
-            ),
-            namespace="cert-manager",
-            create_namespace=True,
-            values={"installCRDs": "true"},
+    if config["components"]["efs-eks"][:]:
+        storage_class = resources["efs_storage_class"].metadata["name"]
+    else:
+        storage_class = config.get("/monitoring/storage-class", "")
+
+    monitoring_namespace = Namespace(
+        "antares-monitoring-ns",
+        metadata=ObjectMetaArgs(
+            name=f"antares-{config.stack}-monitoring",
+            labels={**config.get("labels", {})},
         ),
     )
 
-    resources["cert-manager"] = cert_manager_release
+    resources["monitoring-namespace"] = monitoring_namespace
+
+    monitoring_release = Release(
+        "monitoring-release",
+        ReleaseArgs(
+            chart="kube-prometheus-stack",
+            name="monitoring",
+            repository_opts=RepositoryOptsArgs(
+                repo="https://prometheus-community.github.io/helm-charts",
+            ),
+            namespace=monitoring_namespace.metadata["name"],
+            create_namespace=False,
+            values=config.get("/monitoring/helm-value", {}),
+        ),
+        opts=pulumi.ResourceOptions(depends_on=[monitoring_namespace]),
+    )
+
+    resources["monitoring"] = monitoring_release
 
     return

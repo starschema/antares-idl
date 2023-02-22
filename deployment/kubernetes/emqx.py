@@ -27,18 +27,11 @@ from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.apiextensions import CustomResource
 from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
 
-from antares_common.resources import resources
+from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
 def deploy():
-
-    if config["components"]["efs-eks"][:]:
-        storage_class = resources["efs_storage_class"].metadata["name"]
-    else:
-        # TODO: check without storage class
-        storage_class = config.get("/emqx/storage-class", "")
-
     emqx_release = Release(
         "emqx",
         ReleaseArgs(
@@ -51,7 +44,11 @@ def deploy():
             create_namespace=True,
             values={},
         ),
-        opts=pulumi.ResourceOptions(depends_on=[resources["cert-manager"]]),
+        opts=pulumi.ResourceOptions(
+            depends_on=[resources["cert-manager"]]
+            if component_enabled("cert-manager")
+            else []
+        ),
     )
 
     resources["emqx"] = emqx_release
@@ -88,9 +85,7 @@ def deploy():
                 # TODO: set up emqx persistency storage class
             },
         },
-        opts=pulumi.ResourceOptions(
-            depends_on=[resources["cert-manager"], emqx_release]
-        ),
+        opts=pulumi.ResourceOptions(depends_on=[emqx_release]),
     )
 
     resources["emqx-ee"] = emqx_ee

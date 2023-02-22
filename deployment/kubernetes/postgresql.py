@@ -29,7 +29,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     password = random.RandomPassword(
         "password", length=16, special=True, override_special="_%@"
     )

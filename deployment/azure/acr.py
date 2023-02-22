@@ -24,8 +24,11 @@ SOFTWARE.
 
 import base64
 import pulumi
+import os
 from pulumi import ResourceOptions
 import pulumi_docker as docker
+
+# import pulumi_docker_buildkit as docker_buildkit
 
 from pulumi_azure_native import (
     containerregistry,
@@ -40,10 +43,10 @@ from antares_common.config import config
 def deploy():
     prefix = f"antares-{config.stack}"
     subscription_id = authorization.get_client_config().subscription_id
-
-    print(
-        f"{prefix}-acr",
+    acr_name = config.get(
+        "/acr/registry-name", f"antares{config.org}{config.stack}".replace("-", "")
     )
+
     acr_registry = containerregistry.Registry(
         "antares-acr",
         admin_user_enabled=True,
@@ -51,7 +54,7 @@ def deploy():
             "/acr/location", pulumi.Config("azure-native").require("location")
         ),
         # registry name can only contain alphanumeric characters and no hyphens
-        registry_name="antaresAcr",
+        registry_name=acr_name,
         resource_group_name=resources["resource-group"].name,
         sku=containerregistry.SkuArgs(
             name=config.get("/acr/sku", "Standard"),
@@ -75,30 +78,48 @@ def deploy():
         registry_name=acr_registry.name,
         resource_group_name=resources["resource-group"].name,
     )
+
     registry_info = docker.ImageRegistry(
         server=acr_registry.login_server,
         username=creds.username,
         password=creds.password,
     )
 
+    # buildkit version - currently not used
+    # registry_info_bk = docker_buildkit.RegistryArgs(
+    #     server=acr_registry.login_server,
+    #     username=creds.username,
+    #     password=creds.password,
+    # )
+
     # Publish all the images to the registry.
-    for container in config.get("/ecr/containers", []):
-        image_name = acr_registry.login_server.apply(
-            lambda s: f'{s}/{container["name"]}'
-        )
+    for container in os.listdir("../../containers"):
+        print("container: ", container)
+        image_name = f"{acr_name}.azurecr.io/{container}:latest"
+        print(image_name)
 
         image = docker.Image(
-            "hvr-docker-image",
+            f"{container}-docker-image",
             build=docker.DockerBuild(
-                context=f"../../containers/{container['name']}",
-                extra_options=["--platform", "linux/amd64"],
+                context=f"../../containers/{container}",
+                args={"--platform": "linux/amd64"},
             ),
-            # TODO: use more human readable names in ECR
             image_name=image_name,
-            local_image_name=container["tag"],
             registry=registry_info,
+            opts=pulumi.ResourceOptions(depends_on=[acr_registry]),
         )
 
+        # buildkit version - currently not used
+        # image = docker_buildkit.Image(
+        #     f"{container}-image",
+        #     name=image_name,
+        #     registry=registry_info_bk,
+        #     context=f"../../containers/{container}",
+        #     platforms=["linux/amd64"],
+        #     opts=pulumi.ResourceOptions(depends_on=[acr_registry]),
+        # )
+        # pulumi.export("{container}-image", image.repo_digest)
+
         # Export the base and specific version image name.
-        pulumi.export(f"{container['name']}-base-image-name", image.base_image_name)
-        pulumi.export(f"{container['name']}-full-image-name", image.image_name)
+        pulumi.export(f"{container}-base-image-name", image.base_image_name)
+        pulumi.export(f"{container}-full-image-name", image.image_name)

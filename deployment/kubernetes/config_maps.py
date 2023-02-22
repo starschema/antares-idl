@@ -29,7 +29,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     for name, config_map in config.get("configmaps", {}).items():
         resources[name] = ConfigMap(
             name,

@@ -5,10 +5,16 @@ runtime:
     options:
         virtualenv: venv
 config:
-    antares-idl-k8s:components.airbyte: true
-    antares-idl-k8s:components.postgresql: true
-    antares-idl-k8s:components.dagster: true
+    antares-idl-k8s:components.airflow: false
+    antares-idl-k8s:components.airbyte: false
+    antares-idl-k8s:components.postgresql: false
+    antares-idl-k8s:components.dagster: false
     antares-idl-k8s:components.efs-eks: false
-    antares-idl-k8s:components.hvr: true
-    antares-idl-k8s:components.cert-manager: true
-    antares-idl-k8s:components.emqx: true
+    antares-idl-k8s:components.hvr: false
+    antares-idl-k8s:components.cert-manager: false
+    antares-idl-k8s:components.emqx: false
+    antares-idl-k8s:components.growatt: false
+    # Monitoring includes Prometheus, Grafana and Etcd
+    antares-idl-k8s:components.monitoring: false
+
+
