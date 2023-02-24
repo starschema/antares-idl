@@ -34,7 +34,10 @@ sys.path.insert(0, f"{currentdir}/../../lib")
 
 import efs_eks
 import msk
+import msk_snowflake_connector as msc
+import msk_s3_connector as ms3c
 import ecr
+from antares_common.config import config
 from antares_common.resources import resources, component_enabled
 
 
@@ -47,7 +50,24 @@ if component_enabled("efs-eks"):
     efs_eks.deploy()
 
 if component_enabled("msk"):
-    msk.deploy_msk()
+    antares_kafka_cluster, antares_bucket, aws_security_group = msk.deploy_msk()
+
+    snowflake_stack_ref = pulumi.StackReference(
+        f"{config.org}/antares-idl-snowflake/{config.stack}"
+    )
+
+    if component_enabled("msk-snowflake-connector"):
+        msc.deploy_msk_snowflake_connector(
+            antares_kafka_cluster,
+            aws_security_group,
+            antares_bucket,
+            snowflake_stack_ref,
+        )
+
+    if component_enabled("msk-s3-connector"):
+        ms3c.deploy_msk_s3_connector(
+            antares_kafka_cluster, aws_security_group, antares_bucket
+        )
 
 if component_enabled("ecr"):
     ecr.deploy()
