@@ -93,7 +93,7 @@ def deploy():
             f"{container}-docker-image",
             build=docker.DockerBuildArgs(
                 context=f"../../containers/{container}",
-                args=["--platform", "linux/amd64"],
+                args={"--platform": "linux/amd64"},
                 platform="linux/amd64",
             ),
             image_name=image_name,
