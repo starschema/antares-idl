@@ -3,4 +3,4 @@ pulumi-aws>=5.0.0,<6.0.0
 pulumi_random
 cryptography
 nob
-pulumi-docker
+pulumi-docker>=4.2.0
