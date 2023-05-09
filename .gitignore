@@ -139,4 +139,6 @@ kafka_admin_lambda
 deployment/kubernetes/pod.yaml
 deployment/*/Pulumi.dev*.yaml
 deployment/*/Pulumi.prod*.yaml
+
 tmp_downloads
+
