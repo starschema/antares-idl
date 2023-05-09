@@ -1,3 +1,11 @@
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_ENVIRONMENT: public
+  ARM_LOCATION: westeurope
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
 name: Pulumi preview
 on:
   - pull_request
@@ -12,6 +20,10 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      - name: Configure Azure Credentials
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -19,7 +31,18 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Set up kubectl
-        run: aws eks update-kubeconfig --region eu-central-1 --name StarKube          
+        run: aws eks update-kubeconfig --region eu-central-1 --name StarKube     
+      - name: Pulumi Snowflake 
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: starschema/github-actions
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: deployment/snowflake
+          upsert: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}           
       - name: Pulumi AWS 
         uses: pulumi/actions@v3
         with:
@@ -31,6 +54,17 @@ jobs:
           upsert: true
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}      
+      - name: Pulumi Azure
+        uses: pulumi/actions@v3
+        with:
+          command: preview
+          stack-name: starschema/github-actions
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          work-dir: deployment/azure
+          upsert: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}          
       - name: Pulumi K8s
         uses: pulumi/actions@v3
         with:

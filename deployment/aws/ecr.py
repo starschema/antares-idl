@@ -25,6 +25,7 @@ SOFTWARE.
 import base64
 import pulumi_aws as aws
 import pulumi
+import os
 from antares_common.config import config
 from antares_common.resources import resources
 import pulumi_docker as docker
@@ -36,38 +37,34 @@ def get_registry_info(rid):
     parts = decoded.split(":")
     if len(parts) != 2:
         raise Exception("Invalid credentials")
-    return docker.ImageRegistry(
+    return docker.RegistryArgs(
         server=creds.proxy_endpoint, username=parts[0], password=parts[1]
     )
 
 
-def deploy_ecr():
-    ecr_repostiroy = aws.ecr.Repository(
-        config.get("/ecr/repository-name", "antares-ecr"),
-        image_scanning_configuration=aws.ecr.RepositoryImageScanningConfigurationArgs(
-            scan_on_push=False,
-        ),
-        image_tag_mutability="MUTABLE",
-        force_delete=True,
-    )
-
-    pulumi.export("ecr-repository-url", ecr_repostiroy.repository_url)
-
-    resources["ecr_repository"] = ecr_repostiroy
-
-    for container in config.get("/ecr/containers", []):
-        image = docker.Image(
-            "hvr-docker-image",
-            build=docker.DockerBuild(
-                context=f"../../containers/{container['name']}",
-                extra_options=["--platform", "linux/amd64"],
+def deploy():
+    for container in os.listdir("../../containers"):
+        ecr_repository = aws.ecr.Repository(
+            f"antares-ecr-{container}",
+            image_scanning_configuration=aws.ecr.RepositoryImageScanningConfigurationArgs(
+                scan_on_push=False,
             ),
-            # TODO: use more human readable names in ECR
-            image_name=ecr_repostiroy.repository_url,
-            local_image_name=container["tag"],
-            registry=ecr_repostiroy.registry_id.apply(get_registry_info),
+            image_tag_mutability="MUTABLE",
+            force_delete=True,
+        )
+
+        image = docker.Image(
+            f"{container}-docker-image",
+            build=docker.DockerBuildArgs(
+                context=f"../../containers/{container}",
+                args={"--platform": "linux/amd64"},
+                platform="linux/amd64",
+            ),
+            image_name=ecr_repository.repository_url,
+            registry=ecr_repository.registry_id.apply(get_registry_info),
+            opts=pulumi.ResourceOptions(depends_on=[ecr_repository]),
         )
 
         # Export the base and specific version image name.
-        pulumi.export(f"{container['name']}-base-image-name", image.base_image_name)
-        pulumi.export(f"{container['name']}-full-image-name", image.image_name)
+        pulumi.export(f"{container}-base-image-name", image.base_image_name)
+        pulumi.export(f"{container}-full-image-name", image.image_name)

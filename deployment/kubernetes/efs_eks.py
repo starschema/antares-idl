@@ -31,7 +31,6 @@ from antares_common.resources import resources
 
 
 def deploy():
-
     efs_service_account = ServiceAccount(
         "efs-csi-controller-sa",
         metadata=ObjectMetaArgs(

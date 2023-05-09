@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2022 HCLTech
+Copyright (c) 2023 HCLTech
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import pulumi
-import nob
+from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
+from antares_common.resources import resources
 
 
-def parse_config(name=None):
-    return pulumi.Config(name=name)
+def deploy():
+    cert_manager_release = Release(
+        "cert-manager",
+        ReleaseArgs(
+            chart="cert-manager",
+            name="cert-manager",
+            repository_opts=RepositoryOptsArgs(
+                repo="https://charts.jetstack.io/",
+            ),
+            namespace="cert-manager",
+            create_namespace=True,
+            values={"installCRDs": "true"},
+        ),
+    )
 
+    resources["cert-manager"] = cert_manager_release
 
-pulumi_config = pulumi.Config()
-
-config = nob.Nob(pulumi_config.get_object("config"))
-
-config["org"] = pulumi_config.get("org")
-config["stack"] = pulumi.get_stack()
-config["components"] = pulumi_config.require_object("components")
+    return

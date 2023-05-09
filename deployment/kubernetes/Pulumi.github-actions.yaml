@@ -1,0 +1,20 @@
+config:
+  antares-idl-k8s:components:
+    airbyte: true
+    dagster: true
+    efs-eks: true
+    hvr: false
+    postgresql: true
+    emqx: true
+    cert-manager: true
+    growatt: true
+    monitoring: true
+  antares-idl-k8s:config:
+    cloud:
+      type: aws
+    labels:
+      owner: github
+      unit: practice
+    secrets:
+      test: foobar
+  antares-idl-k8s:org: starschema

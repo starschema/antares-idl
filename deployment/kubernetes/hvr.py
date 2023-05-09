@@ -40,7 +40,6 @@ from antares_common.config import config
 
 
 def deploy():
-
     app_labels = {"app": "hvr", "app_type": "ingestion"}
 
     hvr_http_port = config.get("/hvr/port", "4340")
@@ -90,11 +89,9 @@ def deploy():
     docker_image = config.get("/hvr/docker-image")
 
     if not docker_image:
-        if config.get("/cloud/type") == "aws":
-            docker_image = resources["aws_stack_ref"].get_output("hvr-full-image-name")
-        # TODO: add azure and GCP
-        else:
-            docker_image = "hvr"
+        docker_image = resources[f"{config.get('/cloud/type')}_stack_ref"].get_output(
+            "hvr-full-image-name"
+        )
 
     hvr_config_pvc = PersistentVolumeClaim(
         "hvr-config-pvc",
@@ -103,7 +100,6 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec=PersistentVolumeClaimSpecArgs(
-            # TODO: take it from config
             storage_class_name=config.get("/hvr/storage-class", "efs-postgres"),
             access_modes=["ReadWriteOnce"],
             resources={"requests": {"storage": config.get("/hvr/config-size", "2G")}},

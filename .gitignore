@@ -129,6 +129,16 @@ dmypy.json
 
 .DS_Store
 *.code-workspace
+
+.vscode/*
+logs
+kafka_admin_lambda.zip
+*kafka-connect*.zip
+*kafka-connect*.jar
+kafka_admin_lambda
 deployment/kubernetes/pod.yaml
 deployment/*/Pulumi.dev*.yaml
 deployment/*/Pulumi.prod*.yaml
+
+tmp_downloads
+

@@ -23,17 +23,43 @@ SOFTWARE.
 """
 
 import pulumi
-import nob
+from pulumi import Config as PulumiConfig
+from pulumi_azure_native import (
+    resources as azresources,
+    network,
+)
+
+from antares_common.resources import resources
+from antares_common.config import config
 
 
-def parse_config(name=None):
-    return pulumi.Config(name=name)
+def deploy():
+    prefix = f"antares-{config.stack}"
+    azure_native_config = PulumiConfig("azure-native")
 
+    resource_group = azresources.ResourceGroup(
+        f"{prefix}-rg",
+        location=config.get("location", azure_native_config.require("location")),
+    )
 
-pulumi_config = pulumi.Config()
+    resources["resource-group"] = resource_group
+    pulumi.export("resource-group-name", resource_group.name)
 
-config = nob.Nob(pulumi_config.get_object("config"))
+    vnet = network.VirtualNetwork(
+        f"{prefix}-vnet",
+        location=resource_group.location,
+        resource_group_name=resource_group.name,
+        address_space={
+            "address_prefixes": ["10.0.0.0/16"],
+        },
+    )
 
-config["org"] = pulumi_config.get("org")
-config["stack"] = pulumi.get_stack()
-config["components"] = pulumi_config.require_object("components")
+    subnet = network.Subnet(
+        f"{prefix}-subnet",
+        resource_group_name=resource_group.name,
+        address_prefix="10.0.0.0/24",
+        virtual_network_name=vnet.name,
+    )
+
+    resources["vnet"] = vnet
+    resources["subnet"] = subnet

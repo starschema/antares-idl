@@ -26,12 +26,8 @@ import os
 import sys
 import inspect
 import pulumi
-from pulumi_kubernetes.apps.v1 import Deployment, DeploymentSpecArgs
-from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-from pulumi_kubernetes.core.v1 import ContainerArgs, PodSpecArgs, PodTemplateSpecArgs
-from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from pulumi_kubernetes.core.v1 import Namespace, Service
-from pulumi_kubernetes.storage.v1 import StorageClass, StorageClassArgs
+from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import Namespace
 
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -46,7 +42,10 @@ import dagster
 import airbyte
 import hvr
 import postgresql
-
+import emqx
+import cert_manager
+import growatt
+import monitoring
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -62,7 +61,7 @@ pulumi.export("namespace", resources["namespace"].metadata["name"])
 # if we are in the cloud, then let's load the cloud stack stack ref's
 if config.get("/cloud/type"):
     resources[f"{config.cloud.type}_stack_ref"] = pulumi.StackReference(
-        f"{config.org}/antares-idl-{config.cloud.type}/{config.stack}"
+        f"{config.org}/antares-idl-{config.cloud.type}/{config.get('/cloud/upstream-stack',config.stack)}"
     )
 
 if config.get("secrets"):
@@ -75,6 +74,12 @@ if config.get("config_maps"):
 if component_enabled("efs-eks"):
     efs_eks.deploy()
 
+if component_enabled("cert-manager"):
+    cert_manager.deploy()
+
+if component_enabled("monitoring"):
+    monitoring.deploy()
+
 if component_enabled("postgresql"):
     postgresql.deploy()
 
@@ -86,3 +91,9 @@ if component_enabled("hvr"):
 
 if component_enabled("dagster"):
     dagster.deploy()
+
+if component_enabled("emqx"):
+    emqx.deploy()
+
+if component_enabled("growatt"):
+    growatt.deploy()

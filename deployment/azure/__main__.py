@@ -22,18 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
+import os
+import sys
+import inspect
 import pulumi
-import nob
 
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, f"{currentdir}/../../lib")
 
-def parse_config(name=None):
-    return pulumi.Config(name=name)
+from antares_common.resources import component_enabled
+import aks
+import acr
+import resource_group
 
+resource_group.deploy()
 
-pulumi_config = pulumi.Config()
+if component_enabled("aks"):
+    aks.deploy()
 
-config = nob.Nob(pulumi_config.get_object("config"))
-
-config["org"] = pulumi_config.get("org")
-config["stack"] = pulumi.get_stack()
-config["components"] = pulumi_config.require_object("components")
+if component_enabled("acr"):
+    acr.deploy()
