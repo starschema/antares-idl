@@ -28,8 +28,6 @@ import os
 from pulumi import ResourceOptions
 import pulumi_docker as docker
 
-# import pulumi_docker_buildkit as docker_buildkit
-
 from pulumi_azure_native import (
     containerregistry,
     authorization,
@@ -79,18 +77,11 @@ def deploy():
         resource_group_name=resources["resource-group"].name,
     )
 
-    registry_info = docker.ImageRegistry(
+    registry_info = docker.RegistryArgs(
         server=acr_registry.login_server,
         username=creds.username,
         password=creds.password,
     )
-
-    # buildkit version - currently not used
-    # registry_info_bk = docker_buildkit.RegistryArgs(
-    #     server=acr_registry.login_server,
-    #     username=creds.username,
-    #     password=creds.password,
-    # )
 
     # Publish all the images to the registry.
     for container in os.listdir("../../containers"):
@@ -100,25 +91,15 @@ def deploy():
 
         image = docker.Image(
             f"{container}-docker-image",
-            build=docker.DockerBuild(
+            build=docker.DockerBuildArgs(
                 context=f"../../containers/{container}",
                 args={"--platform": "linux/amd64"},
+                platform="linux/amd64",
             ),
             image_name=image_name,
             registry=registry_info,
             opts=pulumi.ResourceOptions(depends_on=[acr_registry]),
         )
-
-        # buildkit version - currently not used
-        # image = docker_buildkit.Image(
-        #     f"{container}-image",
-        #     name=image_name,
-        #     registry=registry_info_bk,
-        #     context=f"../../containers/{container}",
-        #     platforms=["linux/amd64"],
-        #     opts=pulumi.ResourceOptions(depends_on=[acr_registry]),
-        # )
-        # pulumi.export("{container}-image", image.repo_digest)
 
         # Export the base and specific version image name.
         pulumi.export(f"{container}-base-image-name", image.base_image_name)

@@ -17,8 +17,8 @@ RUN mkdir -p $HVR_HOME
 
 WORKDIR ${HVR_HOME}
 
-COPY hvr*tar.gz .
-RUN tar xvzf hvr*tar.gz
+COPY fivetran*tar.gz .
+RUN tar xvzf fivetran*tar.gz
 RUN rm -f $HVR_HOME/lib/libcrypt*
 
 COPY hvr_docker_init.sh .
