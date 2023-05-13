@@ -42,7 +42,8 @@ jobs:
           work-dir: deployment/snowflake
           upsert: true
         env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}           
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
       - name: Pulumi AWS 
         uses: pulumi/actions@v3
         with:
