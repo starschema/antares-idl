@@ -1,6 +1,6 @@
 config:
-  snowflake:account: x
-  snowflake:password:
-    secure: AAABANf3nSHQPC8iESbjiBal0C63EEya/OK10TOPhDBE
-  snowflake:region: x
-  snowflake:username: x
+  snowflake:account: starschema
+#  snowflake:password:
+#    secure: AAABANf3nSHQPC8iESbjiBal0C63EEya/OK10TOPhDBE
+  snowflake:region: us-west-2
+  snowflake:username: ci_serverless
