@@ -8,6 +8,7 @@ config:
     emqx: true
     cert-manager: true
     growatt: true
+    lm-sensors: true
     monitoring: true
   antares-idl-k8s:config:
     cloud:
