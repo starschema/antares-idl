@@ -14,6 +14,7 @@ config:
     antares-idl-k8s:components.cert-manager: false
     antares-idl-k8s:components.emqx: false
     antares-idl-k8s:components.growatt: false
+    antares-idl-k8s:components.lm-sensors: false
     # Monitoring includes Prometheus, Grafana and Etcd
     antares-idl-k8s:components.monitoring: false
 
