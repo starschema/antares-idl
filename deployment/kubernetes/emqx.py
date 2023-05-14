@@ -26,12 +26,20 @@ import pulumi
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.apiextensions import CustomResource
 from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import (
+    Pod,
+    ContainerArgs,
+    PodSpecArgs,
+)
 
 from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
 def deploy():
+    if not component_enabled("cert-manager"):
+        raise Exception("cert-manager is required for emqx")
+
     emqx_release = Release(
         "emqx",
         ReleaseArgs(
@@ -89,5 +97,43 @@ def deploy():
     )
 
     resources["emqx-ee"] = emqx_ee
+
+    if config.get("/emqx/import-file", False):
+        emqx_ee_importer = (
+            Pod(
+                "emqx-ee-import",
+                metadata=ObjectMetaArgs(
+                    name="emqx-ee-import-backup",
+                    namespace=resources["namespace"].metadata["name"],
+                ),
+                spec=PodSpecArgs(
+                    restart_policy="Never",
+                    containers=[
+                        ContainerArgs(
+                            name="emqx-ee-sync",
+                            image="alpine/curl",
+                            image_pull_policy="IfNotPresent",
+                            command=["/bin/sh"],
+                            # TODO: ensure 8081 is the correct port, can be overridem from config
+                            args=[
+                                "-c",
+                                f"""
+                                # Wait for the emqx cluster to be ready
+                                while ! nc -z emqx-ee 8081; do   
+                                    sleep 1
+                                done
+
+                                # Download the export file
+                                curl -o /tmp/export.json {config.get("/emqx/import-file")} && 
+                                # Import the data into the cluster
+                                curl -i --basic -u admin:public -X POST "http://emqx-ee:8081/api/v4/data/import" -d@/tmp/export.json""",
+                            ],
+                            working_dir="/tmp",
+                        )
+                    ],
+                ),
+                opts=pulumi.ResourceOptions(depends_on=[emqx_ee]),
+            ),
+        )
 
     return

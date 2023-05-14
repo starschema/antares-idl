@@ -18,4 +18,8 @@ config:
       unit: practice
     secrets:
       test: foobar
+    emqx:
+      import-file: https://myserver/export.json
+    hvr:
+      export-file: https://myserver/export.json
   antares-idl-k8s:org: starschema
