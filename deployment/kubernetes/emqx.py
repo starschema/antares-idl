@@ -40,6 +40,34 @@ def deploy():
     if not component_enabled("cert-manager"):
         raise Exception("cert-manager is required for emqx")
 
+    if component_enabled("efs-eks"):
+        emqx_helm_values = {
+            "persistence": {
+                "enabled": True,
+                "storageClassName": "efs-sc-user-1000",
+                "accessMode": "ReadWriteMany",
+            },
+        }
+        emqx_pvc_template = {
+            "metadata": {
+                "name": "emqx-data",
+            },
+            "spec": {
+                "storageClassName": "efs-sc-user-1000",
+                "accessModes": ["ReadWriteMany"],
+                "resources": {
+                    "requests": {
+                        "storage": "10Gi",
+                    },
+                },
+            },
+        }
+        depends_on = [resources["efs-sc-user-1000"], resources["cert-manager"]]
+    else:
+        emqx_helm_values = {}
+        depends_on = [resources["cert-manager"]]
+        emqx_pvc_template = {}
+
     emqx_release = Release(
         "emqx",
         ReleaseArgs(
@@ -50,12 +78,10 @@ def deploy():
             ),
             namespace="emqx-operator-system",
             create_namespace=True,
-            values={},
+            values={**emqx_helm_values, **(config.get("/emqx/helm-values", {}))},
         ),
         opts=pulumi.ResourceOptions(
-            depends_on=[resources["cert-manager"]]
-            if component_enabled("cert-manager")
-            else []
+            depends_on=depends_on,
         ),
     )
 
@@ -90,7 +116,10 @@ def deploy():
                         "emqxACL": config.get("/emqx/emqx-acl", []),
                     }
                 }
-                # TODO: set up emqx persistency storage class
+            },
+            "persistent": {
+                **emqx_pvc_template,
+                **(config.get("/emqx/pvc-template", {})),
             },
         },
         opts=pulumi.ResourceOptions(depends_on=[emqx_release]),
