@@ -165,42 +165,4 @@ def deploy():
             ),
         )
 
-    if config.get("/emqx/import-file", False):
-        emqx_ee_importer = (
-            Pod(
-                "emqx-ee-import",
-                metadata=ObjectMetaArgs(
-                    name="emqx-ee-import-backup",
-                    namespace=resources["namespace"].metadata["name"],
-                ),
-                spec=PodSpecArgs(
-                    restart_policy="Never",
-                    containers=[
-                        ContainerArgs(
-                            name="emqx-ee-sync",
-                            image="alpine/curl",
-                            image_pull_policy="IfNotPresent",
-                            command=["/bin/sh"],
-                            # TODO: ensure 8081 is the correct port, can be overridem from config
-                            args=[
-                                "-c",
-                                f"""
-                                # Wait for the emqx cluster to be ready
-                                while ! nc -z emqx-ee 8081; do   
-                                    sleep 1
-                                done
-
-                                # Download the export file
-                                curl -o /tmp/export.json {config.get("/emqx/import-file")} && 
-                                # Import the data into the cluster
-                                curl -i --basic -u admin:public -X POST "http://emqx-ee:8081/api/v4/data/import" -d@/tmp/export.json""",
-                            ],
-                            working_dir="/tmp",
-                        )
-                    ],
-                ),
-                opts=pulumi.ResourceOptions(depends_on=[emqx_ee]),
-            ),
-        )
-
     return
