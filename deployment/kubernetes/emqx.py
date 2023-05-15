@@ -26,12 +26,48 @@ import pulumi
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
 from pulumi_kubernetes.apiextensions import CustomResource
 from pulumi_kubernetes.meta.v1 import ObjectMetaArgs
+from pulumi_kubernetes.core.v1 import (
+    Pod,
+    ContainerArgs,
+    PodSpecArgs,
+)
 
 from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
 def deploy():
+    if not component_enabled("cert-manager"):
+        raise Exception("cert-manager is required for emqx")
+
+    if component_enabled("efs-eks"):
+        emqx_helm_values = {
+            "persistence": {
+                "enabled": True,
+                "storageClassName": "efs-sc-user-1000",
+                "accessMode": "ReadWriteMany",
+            },
+        }
+        emqx_pvc_template = {
+            "metadata": {
+                "name": "emqx-data",
+            },
+            "spec": {
+                "storageClassName": "efs-sc-user-1000",
+                "accessModes": ["ReadWriteMany"],
+                "resources": {
+                    "requests": {
+                        "storage": "10Gi",
+                    },
+                },
+            },
+        }
+        depends_on = [resources["efs-sc-user-1000"], resources["cert-manager"]]
+    else:
+        emqx_helm_values = {}
+        depends_on = [resources["cert-manager"]]
+        emqx_pvc_template = {}
+
     emqx_release = Release(
         "emqx",
         ReleaseArgs(
@@ -42,12 +78,10 @@ def deploy():
             ),
             namespace="emqx-operator-system",
             create_namespace=True,
-            values={},
+            values={**emqx_helm_values, **(config.get("/emqx/helm-values", {}))},
         ),
         opts=pulumi.ResourceOptions(
-            depends_on=[resources["cert-manager"]]
-            if component_enabled("cert-manager")
-            else []
+            depends_on=depends_on,
         ),
     )
 
@@ -82,12 +116,53 @@ def deploy():
                         "emqxACL": config.get("/emqx/emqx-acl", []),
                     }
                 }
-                # TODO: set up emqx persistency storage class
+            },
+            "persistent": {
+                **emqx_pvc_template,
+                **(config.get("/emqx/pvc-template", {})),
             },
         },
         opts=pulumi.ResourceOptions(depends_on=[emqx_release]),
     )
 
     resources["emqx-ee"] = emqx_ee
+
+    if config.get("/emqx/import-file", False):
+        emqx_ee_importer = (
+            Pod(
+                "emqx-ee-import",
+                metadata=ObjectMetaArgs(
+                    name="emqx-ee-import-backup",
+                    namespace=resources["namespace"].metadata["name"],
+                ),
+                spec=PodSpecArgs(
+                    restart_policy="Never",
+                    containers=[
+                        ContainerArgs(
+                            name="emqx-ee-sync",
+                            image="alpine/curl",
+                            image_pull_policy="IfNotPresent",
+                            command=["/bin/sh"],
+                            # TODO: ensure 8081 is the correct port, can be overridem from config
+                            args=[
+                                "-c",
+                                f"""
+                                # Wait for the emqx cluster to be ready
+                                while ! nc -z emqx-ee 8081; do   
+                                    sleep 1
+                                done
+
+                                # Download the export file
+                                curl -o /tmp/export.json {config.get("/emqx/import-file")} && 
+                                # Import the data into the cluster
+                                curl -i --basic -u admin:public -X POST "http://emqx-ee:8081/api/v4/data/import" -d@/tmp/export.json""",
+                            ],
+                            working_dir="/tmp",
+                        )
+                    ],
+                ),
+                opts=pulumi.ResourceOptions(depends_on=[emqx_ee]),
+            ),
+        )
 
     return

@@ -86,22 +86,22 @@ def deploy():
 
     resources["efs_storage_class"] = efs_storage_class
 
-    postgresql_storage_class = StorageClass(
-        "efs-postgres",
-        metadata=ObjectMetaArgs(
-            name="efs-postgres",
-        ),
-        provisioner="efs.csi.aws.com",
-        parameters={
-            "provisioningMode": "efs-ap",
-            "fileSystemId": resources["aws_stack_ref"].get_output("k8s_efs_id"),
-            "directoryPerms": "700",
-            "basePath": "/eks_dynamic",
-            "gid": "1001",
-            "uid": "1001",
-        },
-    )
-
-    resources["postgresql_storage_class"] = postgresql_storage_class
+    for uid_gid in ["1000", "1001"]:
+        storage_class = StorageClass(
+            f"efs-sc-user-{uid_gid}",
+            metadata=ObjectMetaArgs(
+                name=f"efs-sc-user-{uid_gid}",
+            ),
+            provisioner="efs.csi.aws.com",
+            parameters={
+                "provisioningMode": "efs-ap",
+                "fileSystemId": resources["aws_stack_ref"].get_output("k8s_efs_id"),
+                "directoryPerms": "700",
+                "basePath": "/eks_dynamic",
+                "gid": str(uid_gid),
+                "uid": str(uid_gid),
+            },
+        )
+        resources[f"efs-sc-user-{uid_gid}"] = storage_class
 
     return

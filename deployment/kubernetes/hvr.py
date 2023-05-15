@@ -100,7 +100,7 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec=PersistentVolumeClaimSpecArgs(
-            storage_class_name=config.get("/hvr/storage-class", "efs-postgres"),
+            storage_class_name=config.get("/hvr/storage-class", "efs-sc-user-1001"),
             access_modes=["ReadWriteOnce"],
             resources={"requests": {"storage": config.get("/hvr/config-size", "2G")}},
         ),
