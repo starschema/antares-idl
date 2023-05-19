@@ -23,12 +23,19 @@ SOFTWARE.
 """
 
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from antares_common.resources import resources
+from antares_common.resources import resources, component_enabled
 from antares_common.config import config
 
 
 def deploy():
     influxdb2_helm_values = {"securityContext": {"runAsUser": 1000, "runAsGroup": 1000}}
+
+    if component_enabled("efs-eks"):
+        influxdb2_helm_values["persistence"] = {
+            "enabled": True,
+            "storageClass": "efs-sc-user-1000",
+            "accessModes": ["ReadWriteMany"],
+        }
 
     influxdb2_release = Release(
         "influxdb2",
