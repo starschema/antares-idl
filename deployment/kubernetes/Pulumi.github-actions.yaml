@@ -10,6 +10,7 @@ config:
     growatt: true
     lm-sensors: true
     monitoring: true
+    influxdb2: true
   antares-idl-k8s:config:
     cloud:
       type: aws
