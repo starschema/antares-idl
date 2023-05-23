@@ -31,7 +31,7 @@ def net_dev():
         if line.find(":") < 0:
             continue
         face, data = line.split(":")
-        faceData = dict(zip(cols, data.split()))
+        faceData = dict(zip(cols, [int(x) for x in data.split()]))
         faces[face.strip()] = faceData
 
     return faces
