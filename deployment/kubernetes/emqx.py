@@ -37,7 +37,9 @@ from antares_common.config import config
 
 
 def deploy():
-    if not component_enabled("cert-manager"):
+    if not component_enabled("cert-manager") and config.get(
+        "/emqx/install-operator", True
+    ):
         raise Exception("cert-manager is required for emqx")
 
     if component_enabled("efs-eks"):
@@ -49,16 +51,11 @@ def deploy():
             },
         }
         emqx_pvc_template = {
-            "metadata": {
-                "name": "emqx-data",
-            },
-            "spec": {
-                "storageClassName": "efs-sc-user-1000",
-                "accessModes": ["ReadWriteMany"],
-                "resources": {
-                    "requests": {
-                        "storage": "10Gi",
-                    },
+            "storageClassName": "efs-sc-user-1000",
+            "accessModes": ["ReadWriteMany"],
+            "resources": {
+                "requests": {
+                    "storage": "10Gi",
                 },
             },
         }
@@ -68,58 +65,67 @@ def deploy():
         depends_on = [resources["cert-manager"]]
         emqx_pvc_template = {}
 
-    emqx_release = Release(
-        "emqx",
-        ReleaseArgs(
-            chart="emqx-operator",
-            name="emqx",
-            repository_opts=RepositoryOptsArgs(
-                repo="https://repos.emqx.io/charts",
+    if config.get("/emqx/install-operator", True):
+        emqx_release = Release(
+            "emqx",
+            ReleaseArgs(
+                chart="emqx-operator",
+                name="emqx",
+                repository_opts=RepositoryOptsArgs(
+                    repo="https://repos.emqx.io/charts",
+                ),
+                namespace="emqx-operator-system",
+                create_namespace=True,
+                values={**emqx_helm_values, **(config.get("/emqx/helm-values", {}))},
             ),
-            namespace="emqx-operator-system",
-            create_namespace=True,
-            values={**emqx_helm_values, **(config.get("/emqx/helm-values", {}))},
-        ),
-        opts=pulumi.ResourceOptions(
-            depends_on=depends_on,
-        ),
-    )
+            opts=pulumi.ResourceOptions(
+                depends_on=depends_on,
+            ),
+        )
 
-    resources["emqx"] = emqx_release
+        resources["emqx"] = emqx_release
+    else:
+        resources["emqx"] = Release.get("emqx", "emqx-operator-system/emqx")
 
     emqx_ee = CustomResource(
         "emqx-ee",
-        api_version="apps.emqx.io/v1beta4",
-        kind="EmqxEnterprise",
+        api_version="apps.emqx.io/v2alpha1",
+        kind="EMQX",
         metadata=ObjectMetaArgs(
             name="emqx-ee",
             namespace=resources["namespace"].metadata["name"],
         ),
         spec={
-            **(
-                {
-                    "license": config.get("/emqx/license"),
-                }
-                if config.get("/emqx/license", "")
-                else {}
-            ),
-            "replicas": config.get("/emqx/replicas", 1),
-            "volumeClaimTemplates": config.get("/emqx/persistent-volume", {}),
-            "template": {
+            "image": "358845015454.dkr.ecr.eu-central-1.amazonaws.com/emqx-enterprise:5.0.4-alpha.1-gf54a1e90",
+            # "image": "emqx/emqx-enterprise:5.0.3",
+            "coreTemplate": {
                 "spec": {
-                    "emqxContainer": {
-                        "image": {
-                            "version": config.get("/emqx/version", "4.4.14"),
-                            "repository": "emqx/emqx-ee",
-                        },
-                        "emqxConfig": config.get("/emqx/emqx-config", {}),
-                        "emqxACL": config.get("/emqx/emqx-acl", []),
-                    }
+                    "podSecurityContext": {
+                        "runAsUser": 1000,
+                        "runAsGroup": 1000,
+                        "fsGroup": 1000,
+                        "fsGroupChangePolicy": "Always",
+                        "supplementalGroups": [1000],
+                    },
+                    "volumeClaimTemplates": {
+                        **emqx_pvc_template,
+                        **(config.get("/emqx/pvc-template", {})),
+                    },
+                    "replicas": config.get("/emqx/replicas", 1),
+                    **(config.get("/emqx/core-template", {})),
                 }
             },
-            "persistent": {
-                **emqx_pvc_template,
-                **(config.get("/emqx/pvc-template", {})),
+            "replicantTemplate": {
+                "spec": {
+                    **(config.get("/emqx/replicant-template", {})),
+                    "replicas": config.get("/emqx/replicas", 0),
+                },
+            },
+            "listenersServiceTemplate": {
+                **(config.get("/emqx/service-template", {})),
+                "metadata": {
+                    "name": "emqx-ee",
+                },
             },
         },
         opts=pulumi.ResourceOptions(depends_on=[emqx_release]),
