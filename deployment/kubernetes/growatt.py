@@ -76,6 +76,16 @@ def deploy():
                             image=docker_image,
                             env=growatt_env,
                             env_from=config.get("/growatt/env-from", []),
+                            resources=config.get(
+                                "/growatt/resources",
+                                {
+                                    "requests": {
+                                        "cpu": "10m",
+                                        "memory": "64Mi",
+                                        "ephemeral-storage": "10Mi",
+                                    }
+                                },
+                            ),
                         )
                     ],
                 ),
