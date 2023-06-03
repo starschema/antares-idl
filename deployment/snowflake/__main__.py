@@ -49,7 +49,7 @@ def deploy_db():
     if config.get("/snowflake/default-warehouse"):
         wh_name = config.get("/snowflake/default-warehouse")
     else:
-        warehouse_size = config.get("/snowflake/warehouse-size", "X-SMALL")
+        warehouse_size = config.get("/snowflake/warehouse-size", "XSMALL")
         warehouse = snowflake.Warehouse(
             "antares_warehouse",
             name=f"ANTARES_WAREHOUSE_{stack_suffix}",
