@@ -96,8 +96,7 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec={
-            "image": "358845015454.dkr.ecr.eu-central-1.amazonaws.com/emqx-enterprise:5.0.4-alpha.1-gf54a1e90",
-            # "image": "emqx/emqx-enterprise:5.0.3",
+            "image": config.get("image", "emqx/emqx-enterprise:5.0.3"),
             "coreTemplate": {
                 "spec": {
                     "podSecurityContext": {
