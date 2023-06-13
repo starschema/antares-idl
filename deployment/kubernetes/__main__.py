@@ -43,6 +43,7 @@ import airbyte
 import hvr
 import postgresql
 import emqx
+import influxdb2
 import cert_manager
 import growatt
 import lm_sensors
@@ -95,6 +96,9 @@ if component_enabled("dagster"):
 
 if component_enabled("emqx"):
     emqx.deploy()
+
+if component_enabled("influxdb2"):
+    influxdb2.deploy()
 
 if component_enabled("growatt"):
     growatt.deploy()
