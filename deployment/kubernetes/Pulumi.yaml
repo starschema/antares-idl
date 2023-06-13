@@ -16,6 +16,7 @@ config:
     antares-idl-k8s:components.growatt: false
     antares-idl-k8s:components.lm-sensors: false
     antares-idl-k8s:components.influxdb2: false
+    antares-idl-k8s:components.grafana: false
     # Monitoring includes Prometheus, Grafana and Etcd on a separate 
     # namespace
     antares-idl-k8s:components.monitoring: false

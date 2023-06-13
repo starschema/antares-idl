@@ -87,7 +87,6 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec=PersistentVolumeClaimSpecArgs(
-            # TODO: take it from config
             storage_class_name=config.get("/airbyte/storage-class", "efs-sc"),
             access_modes=["ReadWriteOnce"],
             resources={"requests": {"storage": "20M"}},
