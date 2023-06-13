@@ -41,6 +41,10 @@ def deploy():
         "/emqx/install-operator", True
     ):
         raise Exception("cert-manager is required for emqx")
+    elif not component_enabled("cert-manager"):
+        resources["cert-manager"] = Release.get(
+            "cert-manager", "cert-manager/cert-manager"
+        )
 
     if component_enabled("efs-eks"):
         emqx_helm_values = {
@@ -96,7 +100,7 @@ def deploy():
             namespace=resources["namespace"].metadata["name"],
         ),
         spec={
-            "image": config.get("image", "emqx/emqx-enterprise:5.0.3"),
+            "image": config.get("/emqx/image", "emqx/emqx-enterprise:5.0.4"),
             "coreTemplate": {
                 "spec": {
                     "podSecurityContext": {
@@ -127,7 +131,7 @@ def deploy():
                 },
             },
         },
-        opts=pulumi.ResourceOptions(depends_on=[emqx_release]),
+        opts=pulumi.ResourceOptions(depends_on=[resources["emqx"]]),
     )
 
     resources["emqx-ee"] = emqx_ee
