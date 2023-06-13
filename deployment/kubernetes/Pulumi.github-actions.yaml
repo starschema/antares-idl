@@ -11,6 +11,7 @@ config:
     lm-sensors: true
     monitoring: true
     influxdb2: true
+    grafana: true
   antares-idl-k8s:config:
     cloud:
       type: aws
