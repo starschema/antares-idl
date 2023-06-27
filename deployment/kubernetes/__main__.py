@@ -49,6 +49,7 @@ import cert_manager
 import growatt
 import lm_sensors
 import monitoring
+import predictive_maintenance
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -109,3 +110,6 @@ if component_enabled("growatt"):
 
 if component_enabled("lm-sensors"):
     lm_sensors.deploy()
+
+if component_enabled("predictive-maintenance"):
+    predictive_maintenance.deploy()
