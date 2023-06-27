@@ -19,6 +19,7 @@ config:
     antares-idl-k8s:components.grafana: false
     # Monitoring includes Prometheus, Grafana and Etcd on a separate 
     # namespace
+    antares-idl-k8s:components.predictive-maintenance: false
     antares-idl-k8s:components.monitoring: false
 
 

@@ -12,6 +12,7 @@ config:
     monitoring: true
     influxdb2: true
     grafana: true
+    predictive-maintenance: true
   antares-idl-k8s:config:
     cloud:
       type: aws
