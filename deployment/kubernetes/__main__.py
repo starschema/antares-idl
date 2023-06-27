@@ -44,10 +44,12 @@ import hvr
 import postgresql
 import emqx
 import influxdb2
+import grafana
 import cert_manager
 import growatt
 import lm_sensors
 import monitoring
+import predictive_maintenance
 
 # Create namespace for components
 resources["namespace"] = Namespace(
@@ -100,8 +102,14 @@ if component_enabled("emqx"):
 if component_enabled("influxdb2"):
     influxdb2.deploy()
 
+if component_enabled("grafana"):
+    grafana.deploy()
+
 if component_enabled("growatt"):
     growatt.deploy()
 
 if component_enabled("lm-sensors"):
     lm_sensors.deploy()
+
+if component_enabled("predictive-maintenance"):
+    predictive_maintenance.deploy()
