@@ -1,0 +1,858 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 4,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Back to Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "https://monitoring.aws.starschema.biz/d/c0ad6292-ce68-44de-b476-8f6788171c57/overview?orgId=1&refresh=5s"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 5,
+      "panels": [],
+      "title": "Details for Engine Number ${engine_id_manual}",
+      "type": "row"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd",
+            "seriesBy": "last"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": -1,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "links": [
+            {
+              "title": "Overview",
+              "url": "http://localhost:3000/d/c0ad6292-ce68-44de-b476-8f6788171c57/overview?orgId=1&refresh=5s"
+            }
+          ],
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Probability of failure within 30 cycles"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "max",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 13,
+        "x": 0,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Probability of failure within 30 cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Anomaly Score & Probability of Failure Score",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 13,
+        "y": 1
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Anomaly Score",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 16,
+        "y": 1
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Probability of failure within 30 cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Prediction Score",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 19,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Completed cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Cycle",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "Altitude 1"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 22,
+        "x": 0,
+        "y": 7
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Live Metrics",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "f8eaa14a-c9d5-4644-851e-3c226601c21c"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Altitude"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly score {engine_no=\"2\", name=\"measurement\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 119
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Completed cycles {engine_no=\"2\", name=\"measurement\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Probability of failure within 30 cycles {engine_no=\"2\", name=\"measurement\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 273
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "anomaly_feature_1 {engine_no=\"2\", name=\"measurement\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 416
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cycle"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly Score"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Predictive Score"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Top Anomaly Feature"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": false
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 22,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "interval": "5",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Time"
+          }
+        ]
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement\")\r\n  |> filter(fn: (r) => r[\"engine_no\"] == \"${engine_id_manual}\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Anomaly & Predictive Features",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Altitude measurement2": true,
+              "Altitude {engine_no=\"1\", name=\"measurement\"}": true,
+              "Altitude {engine_no=\"2\", name=\"measurement\"}": true,
+              "Anomaly score measurement2": false,
+              "Bleed enthalpy measurement2": true,
+              "Bleed enthalpy {engine_no=\"1\", name=\"measurement\"}": true,
+              "Bleed enthalpy {engine_no=\"2\", name=\"measurement\"}": true,
+              "Bypass Ratio measurement2": true,
+              "Bypass Ratio {engine_no=\"1\", name=\"measurement\"}": true,
+              "Bypass Ratio {engine_no=\"2\", name=\"measurement\"}": true,
+              "Completed cycles measurement2": false,
+              "Completed cycles {engine_no=\"1\", name=\"measurement\"}": true,
+              "Completed cycles {engine_no=\"2\", name=\"measurement\"}": true,
+              "Corrected fan speed measurement2": true,
+              "Corrected fan speed {engine_no=\"1\", name=\"measurement\"}": true,
+              "Corrected fan speed {engine_no=\"2\", name=\"measurement\"}": true,
+              "Engine ID {engine_no=\"1\", name=\"measurement\"}": true,
+              "Engine ID {engine_no=\"2\", name=\"measurement\"}": true,
+              "HPT coolant bleed measurement2": true,
+              "HPT coolant bleed {engine_no=\"1\", name=\"measurement\"}": true,
+              "HPT coolant bleed {engine_no=\"2\", name=\"measurement\"}": true,
+              "LPT coolant bleed measurement2": true,
+              "LPT coolant bleed {engine_no=\"1\", name=\"measurement\"}": true,
+              "LPT coolant bleed {engine_no=\"2\", name=\"measurement\"}": true,
+              "Mach number measurement2": true,
+              "Mach number {engine_no=\"1\", name=\"measurement\"}": true,
+              "Mach number {engine_no=\"2\", name=\"measurement\"}": true,
+              "Physical core speed measurement2": true,
+              "Physical core speed {engine_no=\"1\", name=\"measurement\"}": true,
+              "Physical core speed {engine_no=\"2\", name=\"measurement\"}": true,
+              "Physical fan speed measurement2": true,
+              "Physical fan speed {engine_no=\"1\", name=\"measurement\"}": true,
+              "Physical fan speed {engine_no=\"2\", name=\"measurement\"}": true,
+              "Probability of failure within 30 cycles measurement2": false,
+              "Ratio of fuel flow to Ps measurement2": true,
+              "Ratio of fuel flow to Ps {engine_no=\"1\", name=\"measurement\"}": true,
+              "Ratio of fuel flow to Ps {engine_no=\"2\", name=\"measurement\"}": true,
+              "Static pressure at HPC outlet measurement2": true,
+              "Static pressure at HPC outlet {engine_no=\"1\", name=\"measurement\"}": true,
+              "Static pressure at HPC outlet {engine_no=\"2\", name=\"measurement\"}": true,
+              "Time": false,
+              "Total": true,
+              "Total Temperature LPT outlet measurement2": true,
+              "Total Temperature LPT outlet {engine_no=\"1\", name=\"measurement\"}": true,
+              "Total Temperature LPT outlet {engine_no=\"2\", name=\"measurement\"}": true,
+              "Total pressure at HPC outlet measurement2": true,
+              "Total pressure at HPC outlet {engine_no=\"1\", name=\"measurement\"}": true,
+              "Total pressure at HPC outlet {engine_no=\"2\", name=\"measurement\"}": true,
+              "Total pressure in bypass-duct measurement2": true,
+              "Total pressure in bypass-duct {engine_no=\"1\", name=\"measurement\"}": true,
+              "Total pressure in bypass-duct {engine_no=\"2\", name=\"measurement\"}": true,
+              "Total temperature at HPC outlet measurement2": true,
+              "Total temperature at HPC outlet {engine_no=\"1\", name=\"measurement\"}": true,
+              "Total temperature at HPC outlet {engine_no=\"2\", name=\"measurement\"}": true,
+              "Total temperature at LPC outlet measurement2": true,
+              "Total temperature at LPC outlet {engine_no=\"1\", name=\"measurement\"}": true,
+              "Total temperature at LPC outlet {engine_no=\"2\", name=\"measurement\"}": true,
+              "anomaly_feature_2 {engine_no=\"1\", name=\"measurement\"}": true,
+              "anomaly_feature_2 {engine_no=\"2\", name=\"measurement\"}": true,
+              "anomaly_feature_3 measurement2": false,
+              "anomaly_feature_3 {engine_no=\"1\", name=\"measurement\"}": true,
+              "anomaly_feature_3 {engine_no=\"2\", name=\"measurement\"}": true,
+              "top_2_predictive_feature {engine_no=\"1\", name=\"measurement\"}": true,
+              "top_2_predictive_feature {engine_no=\"2\", name=\"measurement\"}": true,
+              "top_3_predictive_feature {engine_no=\"1\", name=\"measurement\"}": true,
+              "top_3_predictive_feature {engine_no=\"2\", name=\"measurement\"}": true
+            },
+            "indexByName": {
+              "Altitude {engine_no=\"2\", name=\"measurement\"}": 2,
+              "Anomaly score {engine_no=\"2\", name=\"measurement\"}": 3,
+              "Bleed enthalpy {engine_no=\"2\", name=\"measurement\"}": 5,
+              "Bypass Ratio {engine_no=\"2\", name=\"measurement\"}": 6,
+              "Completed cycles {engine_no=\"2\", name=\"measurement\"}": 4,
+              "Corrected fan speed {engine_no=\"2\", name=\"measurement\"}": 7,
+              "Engine ID {engine_no=\"2\", name=\"measurement\"}": 8,
+              "HPT coolant bleed {engine_no=\"2\", name=\"measurement\"}": 9,
+              "LPT coolant bleed {engine_no=\"2\", name=\"measurement\"}": 10,
+              "Mach number {engine_no=\"2\", name=\"measurement\"}": 11,
+              "Physical core speed {engine_no=\"2\", name=\"measurement\"}": 12,
+              "Physical fan speed {engine_no=\"2\", name=\"measurement\"}": 13,
+              "Probability of failure within 30 cycles {engine_no=\"2\", name=\"measurement\"}": 14,
+              "Ratio of fuel flow to Ps {engine_no=\"2\", name=\"measurement\"}": 15,
+              "Static pressure at HPC outlet {engine_no=\"2\", name=\"measurement\"}": 16,
+              "Time": 0,
+              "Total": 1,
+              "Total Temperature LPT outlet {engine_no=\"2\", name=\"measurement\"}": 17,
+              "Total pressure at HPC outlet {engine_no=\"2\", name=\"measurement\"}": 18,
+              "Total pressure in bypass-duct {engine_no=\"2\", name=\"measurement\"}": 19,
+              "Total temperature at HPC outlet {engine_no=\"2\", name=\"measurement\"}": 20,
+              "Total temperature at LPC outlet {engine_no=\"2\", name=\"measurement\"}": 21,
+              "anomaly_feature_1 {engine_no=\"2\", name=\"measurement\"}": 22,
+              "anomaly_feature_2 {engine_no=\"2\", name=\"measurement\"}": 23,
+              "anomaly_feature_3 {engine_no=\"2\", name=\"measurement\"}": 24,
+              "top_1_predictive_feature {engine_no=\"2\", name=\"measurement\"}": 25,
+              "top_2_predictive_feature {engine_no=\"2\", name=\"measurement\"}": 26,
+              "top_3_predictive_feature {engine_no=\"2\", name=\"measurement\"}": 27
+            },
+            "renameByName": {
+              "Anomaly score measurement2": "Anomaly Score",
+              "Anomaly score {engine_no=\"1\", name=\"measurement\"}": "Anomaly Score",
+              "Anomaly score {engine_no=\"2\", name=\"measurement\"}": "Anomaly Score",
+              "Bleed enthalpy measurement2": "",
+              "Bypass Ratio {engine_no=\"1\", name=\"measurement\"}": "",
+              "Completed cycles measurement2": "Cycle",
+              "Completed cycles {engine_no=\"1\", name=\"measurement\"}": "Cycle",
+              "Completed cycles {engine_no=\"2\", name=\"measurement\"}": "Cycle",
+              "Engine ID measurement2": "",
+              "Physical fan speed {engine_no=\"2\", name=\"measurement\"}": "",
+              "Probability of failure within 30 cycles measurement2": "Probability of Failure",
+              "Probability of failure within 30 cycles {engine_no=\"1\", name=\"measurement\"}": "Probability of Failure",
+              "Probability of failure within 30 cycles {engine_no=\"2\", name=\"measurement\"}": "Predictive Score",
+              "Total pressure at HPC outlet measurement2": "",
+              "anomaly_feature_1 {engine_no=\"1\", name=\"measurement\"}": "Top Anomaly Feature",
+              "anomaly_feature_1 {engine_no=\"2\", name=\"measurement\"}": "Top Anomaly Feature",
+              "anomaly_feature_2 {engine_no=\"1\", name=\"measurement\"}": "",
+              "top_1_predictive_feature {engine_no=\"1\", name=\"measurement\"}": "Top Predictive Feature",
+              "top_1_predictive_feature {engine_no=\"2\", name=\"measurement\"}": "Top Predicitive Feature"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "1",
+          "value": "1"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "engine_id_manual",
+        "multi": false,
+        "name": "engine_id_manual",
+        "options": [
+          {
+            "selected": true,
+            "text": "1",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "2",
+            "value": "2"
+          },
+          {
+            "selected": false,
+            "text": "3",
+            "value": "3"
+          },
+          {
+            "selected": false,
+            "text": "4",
+            "value": "4"
+          },
+          {
+            "selected": false,
+            "text": "5",
+            "value": "5"
+          },
+          {
+            "selected": false,
+            "text": "6",
+            "value": "6"
+          },
+          {
+            "selected": false,
+            "text": "7",
+            "value": "7"
+          },
+          {
+            "selected": false,
+            "text": "8",
+            "value": "8"
+          },
+          {
+            "selected": false,
+            "text": "9",
+            "value": "9"
+          },
+          {
+            "selected": false,
+            "text": "10",
+            "value": "10"
+          }
+        ],
+        "query": "1,2,3,4,5,6,7,8,9,10",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Engine Details",
+  "uid": "b0e055a7-8f34-479a-af09-6d07578aa723",
+  "version": 13,
+  "weekStart": ""
+}

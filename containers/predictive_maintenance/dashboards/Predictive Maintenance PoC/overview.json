@@ -1,0 +1,911 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Go to Engine Details",
+      "tooltip": "",
+      "type": "link",
+      "url": "https://monitoring.aws.starschema.biz/d/b0e055a7-8f34-479a-af09-6d07578aa723/engine-details?orgId=1&refresh=5s"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 9,
+      "panels": [],
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "distinctCount"
+          ],
+          "fields": "/^Engine ID$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Engine ID\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Number of Engines",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/^Completed cycles$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Probability of failure within 30 cycles\" or r[\"_field\"] == \"Completed cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Average # of Cycles",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "f8eaa14a-c9d5-4644-851e-3c226601c21c"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/^Anomaly score$/",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Probability of failure within 30 cycles\" or r[\"_field\"] == \"Completed cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Anomaly Score",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/^Probability of failure within 30 cycles$/",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Probability of failure within 30 cycles\" or r[\"_field\"] == \"Completed cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Prediction of Failure Score",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Engine Details",
+              "url": "https://monitoring.aws.starschema.biz/d/b0e055a7-8f34-479a-af09-6d07578aa723/engine-details?orgId=1&refresh=5s&var-engine_id_manual=${__data.fields[\"Engine ID\"]}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly Score (last)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "continuous-GrYlRd"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Probability of Failure Score (last)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "continuous-GrYlRd"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Engine ID"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 113
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cycle (last)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 125
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Engine ID"
+          }
+        ]
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Probability of failure within 30 cycles\" or r[\"_field\"] == \"Completed cycles\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Engine Health Status",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Anomaly score measurement2": 2,
+              "Completed cycles measurement2": 1,
+              "Engine ID measurement2": 3,
+              "Probability of failure within 30 cycles measurement2": 4,
+              "Time": 0,
+              "Total": 5
+            },
+            "renameByName": {
+              "Anomaly score measurement2": "Anomaly Score",
+              "Completed cycles measurement2": "Cycle",
+              "Engine ID measurement2": "Engine ID",
+              "Probability of failure within 30 cycles measurement2": "Probability of Failure Score"
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Anomaly Score": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Anomaly score": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Cycle": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Engine ID": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Engine ID measurement2": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Probability of Failure Score": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Probability of failure within 30 cycles": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Time": {
+                "aggregations": []
+              }
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Probability of Failure Score"
+          }
+        ]
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Completed cycles\" or r[\"_field\"] == \"Probability of failure within 30 cycles\" or r[\"_field\"] == \"top_1_predictive_feature\" or r[\"_field\"] == \"top_2_predictive_feature\" or r[\"_field\"] == \"top_3_predictive_feature\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Failure Prediction Feature List (Score Over 50%)",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Anomaly score measurement2": false,
+              "Completed cycles measurement2": false,
+              "Probability of failure within 30 cycles measurement2": false,
+              "Total": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Anomaly score measurement2": "Anomaly Score",
+              "Engine ID measurement2": "Engine ID",
+              "Probability of failure within 30 cycles measurement2": "Probability of Failure Score",
+              "anomaly_feature_1 measurement2": "Top 1 Anomaly Feature",
+              "anomaly_feature_2 measurement2": "Top 2 Anomaly Feature",
+              "anomaly_feature_3 measurement2": "Top 3 Anomaly Feature",
+              "top_1_predictive_feature measurement2": "Top 1 Failure Prediction Feature",
+              "top_2_predictive_feature measurement2": "Top 2 Failure Prediction Feature",
+              "top_3_predictive_feature measurement2": "Top 3 Failure Prediction Feature"
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Anomaly Score": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "groupby"
+              },
+              "Completed cycles measurement2": {
+                "aggregations": [
+                  "last"
+                ]
+              },
+              "Engine ID": {
+                "aggregations": []
+              },
+              "Probability of Failure Score": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Top 1 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 1 Failure Prediction Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 2 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 2 Failure Prediction Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 3 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 3 Failure Prediction Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top Failure Prediction Feature": {
+                "aggregations": [
+                  "last"
+                ]
+              },
+              "anomaly_feature_1 measurement2": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0.5
+                  }
+                },
+                "fieldName": "Probability of Failure Score"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Anomaly Score"
+          }
+        ]
+      },
+      "pluginVersion": "9.5.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "f33f006a-c699-43ce-9e23-30046eb6fdc2"
+          },
+          "query": "from(bucket: \"antares\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"measurement2\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Anomaly score\" or r[\"_field\"] == \"Engine ID\" or r[\"_field\"] == \"Completed cycles\" or r[\"_field\"] == \"anomaly_feature_1\" or r[\"_field\"] == \"anomaly_feature_2\" or r[\"_field\"] == \"anomaly_feature_3\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Anomaly Feature List ( Anomaly Score Over 50%)",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Anomaly score measurement2": false,
+              "Completed cycles measurement2": false,
+              "Probability of failure within 30 cycles measurement2": true,
+              "Total": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Anomaly score measurement2": "Anomaly Score",
+              "Engine ID measurement2": "Engine ID",
+              "anomaly_feature_1 measurement2": "Top 1 Anomaly Feature",
+              "anomaly_feature_2 measurement2": "Top 2 Anomaly Feature",
+              "anomaly_feature_3 measurement2": "Top 3 Anomaly Feature",
+              "top_1_predictive_feature measurement2": "Top Failure Prediction Feature"
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Anomaly Score": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "groupby"
+              },
+              "Completed cycles measurement2": {
+                "aggregations": [
+                  "last"
+                ]
+              },
+              "Engine ID": {
+                "aggregations": []
+              },
+              "Top 1 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 2 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top 3 Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top Anomaly Feature": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              },
+              "Top Failure Prediction Feature": {
+                "aggregations": [
+                  "last"
+                ]
+              },
+              "anomaly_feature_1 measurement2": {
+                "aggregations": [
+                  "last"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 50
+                  }
+                },
+                "fieldName": "Anomaly Score"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Overview",
+  "uid": "c0ad6292-ce68-44de-b476-8f6788171c57",
+  "version": 15,
+  "weekStart": ""
+}
