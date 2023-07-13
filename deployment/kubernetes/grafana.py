@@ -63,6 +63,37 @@ def deploy():
         "existingSecret": "grafana-admin",
     }
 
+    if component_enabled("influxdb2"):
+        # TODO: append to existing datasources.yaml if exists
+        grafana_helm_values["datasources"] = {
+            "datasources.yaml": {
+                "apiVersion": 1,
+                "datasources": [
+                    {
+                        "name": "InfluxDB",
+                        "type": "influxdb",
+                        "access": "proxy",
+                        "url": "http://influxdb2:80",
+                        "jsonData": {
+                            "version": "Flux",
+                            "organization": config.get(
+                                "/influxdb2/helm-values/adminUser/organization"
+                            ),
+                            "defaultBucket": config.get(
+                                "/influxdb2/helm-values/adminUser/bucket", "default"
+                            ),
+                            "tlsSkipVerify": True,
+                        },
+                        "secureJsonData": {
+                            "token": config.get(
+                                "/influxdb2/helm-values/adminUser/token"
+                            )
+                        },
+                    }
+                ],
+            }
+        }
+
     grafana_release = Release(
         "grafana",
         ReleaseArgs(

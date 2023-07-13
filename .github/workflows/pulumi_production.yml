@@ -4,7 +4,7 @@ on:
     branches:
       - production
 jobs:
-  update:
+  deploy:
     name: Update
     runs-on: ubuntu-latest
     steps:
@@ -27,8 +27,8 @@ jobs:
           PULUMI_AWS_YAML: ${{ secrets.PULUMI_AWS_YAML }}
       - run: echo "$PULUMI_K8S_YAML" > deployment/kubernetes/Pulumi.production.yaml
         env:
-          PULUMI_K8S_YAML: ${{ secrets.PULUMI_K8S_YAML }}      
-      # - name: Pulumi AWS 
+          PULUMI_K8S_YAML: ${{ secrets.PULUMI_K8S_YAML }}
+      # - name: Pulumi AWS
       #   uses: pulumi/actions@v3
       #   with:
       #     command: up
@@ -36,7 +36,7 @@ jobs:
       #     github-token: ${{ secrets.GITHUB_TOKEN }}
       #     work-dir: deployment/aws
       #   env:
-      #     PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}      
+      #     PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
       - name: Pulumi K8s
         uses: pulumi/actions@v3
         with:
